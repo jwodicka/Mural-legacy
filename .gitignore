@@ -1,0 +1,5 @@
+# MonoDevelop per-user files
+*.userprefs
+*.pidb
+
+[Bb]in
