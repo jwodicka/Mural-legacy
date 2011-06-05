@@ -1,4 +1,6 @@
 using System;
+using System.IO; // Referenced while we need to do path manipulation to get the DB location.
+
 namespace Mural
 {
 	public class LoginParser : ILineConsumer
@@ -28,7 +30,9 @@ namespace Mural
 			{
 				if (_accountStore == null)
 				{
-					_accountStore = new InMemoryAccountStore();
+					//_accountStore = new InMemoryAccountStore();
+					string defaultAccountFile = Path.Combine("DefaultDB", "account.db");
+					_accountStore = new SQLiteAccountStore(defaultAccountFile);
 				}
 				return _accountStore;
 			}

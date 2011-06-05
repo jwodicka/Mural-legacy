@@ -63,4 +63,7 @@
     <Compile Include="SslSession.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <None Include="DefaultDB\account.db" />
+  </ItemGroup>
 </Project>

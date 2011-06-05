@@ -9,108 +9,141 @@ namespace Mural
 		public SQLiteAccountStore (string accountFilePath)
 		{
 			Console.WriteLine("Constructing SQLiteAccountStore");
-			string connectionString = String.Format("Data Source=file:{0},version=3", accountFilePath);
+			string connectionString = String.Format("Data Source={0},version=3", accountFilePath);
 			_connection = new SqliteConnection(connectionString);
-			
-			// Ensure that there is a table for users.
-			string commandText = "create table if not exists Accounts (Name string, Password string)";
-			using (SqliteCommand command = new SqliteCommand(commandText, _connection))
+			_connection.Open();
+			try
 			{
-				command.ExecuteNonQuery();	
+				// Ensure that there is a table for users.
+				string commandText = "create table if not exists Accounts (Name string, Password string)";
+				using (SqliteCommand command = new SqliteCommand(commandText, _connection))
+				{
+					command.ExecuteNonQuery();	
+				}
+				
+				commandText = "select count(*) from Accounts";
+				using (SqliteCommand command = new SqliteCommand(commandText, _connection))
+				{
+					Console.WriteLine(String.Format("Initializing SQLiteAccountStore, {0} accounts known.",
+						command.ExecuteScalar()));
+				}
 			}
-			
-			commandText = "select count(*) from Accounts";
-			using (SqliteCommand command = new SqliteCommand(commandText, _connection))
+			finally
 			{
-				Console.WriteLine(String.Format("Initializing SQLiteAccountStore, {0} accounts known.",
-					command.ExecuteScalar()));
+				_connection.Close();
 			}
 		}
 		
 		public override Account GetAccount (string name, string password)
 		{
-			Console.WriteLine("In GetAccount!");
-			// Holy SQL(ite) injection attack, Batman! This code must not outlive the demo.
-			string commandText = string.Format(
-            	"select Name from Accounts where Name = {0} and Password = {1}",
-               	name, password);
-			using (SqliteCommand command = new SqliteCommand(commandText, _connection))
+			string commandText = "select Name from Accounts where Name=@name and Password=@password";
+			
+			_connection.Open();
+			try
 			{
-				using (SqliteDataReader reader = command.ExecuteReader())
+				using (SqliteCommand command = new SqliteCommand(commandText, _connection))
 				{
-					if (reader.Read())
+					command.Parameters.AddWithValue("@name", name);
+					command.Parameters.AddWithValue("@password", password);
+					using (SqliteDataReader reader = command.ExecuteReader())
 					{
-						Account account = new Account();
-						account.Name = reader.GetString(0);
-						return account;
-					}
-					else
-					{
-						return null;	
+						if (reader.Read())
+						{
+							Account account = new Account();
+							account.Name = reader.GetString(0);
+							return account;
+						}
+						else
+						{
+							return null;	
+						}
 					}
 				}
+			}
+			finally
+			{
+				_connection.Close();
 			}
 		}
 		
 		public override bool CreateAccount (Account account)
 		{
-			string commandText = string.Format(
-				"select count(*) from Accounts where Name = {0}",
-				account.Name);
-			int numberOfAccounts;
-			using (SqliteCommand command = new SqliteCommand(commandText, _connection))
+			_connection.Open();
+			try 
 			{
-				numberOfAccounts = (int) command.ExecuteScalar();	
-			}
-			
-			if (numberOfAccounts > 0) 
-			{
-				// Cannot create an account that already exists!
-				return false;	
-			}
-			else
-			{
-				commandText = string.Format(
-					"insert into Accounts (Name, Password) VALUES ({0}, {1})",                       
-					account.Name, account.Password);
+				string commandText =
+					"select count(*) from Accounts where Name=@name";
+				int numberOfAccounts;
 				using (SqliteCommand command = new SqliteCommand(commandText, _connection))
 				{
-					command.ExecuteNonQuery();
-					return true;
+					command.Parameters.AddWithValue("@name", account.Name);
+					string queryResult = command.ExecuteScalar().ToString();
+					Console.WriteLine("Result: {0}", queryResult);
+					numberOfAccounts = Int32.Parse(queryResult);
 				}
+				
+				if (numberOfAccounts > 0) 
+				{
+					// Cannot create an account that already exists!
+					return false;	
+				}
+				else
+				{
+					commandText = "insert into Accounts (Name, Password) VALUES (@name, @password)";
+					using (SqliteCommand command = new SqliteCommand(commandText, _connection))
+					{
+						command.Parameters.AddWithValue("@name", account.Name);
+						command.Parameters.AddWithValue("@password", account.Password);
+						command.ExecuteNonQuery();
+						return true;
+					}
+				}
+			}
+			finally
+			{
+				_connection.Close();
 			}
 		}
 		
 		public override bool UpdateAccount (Account account, string password)
 		{
-			if (account.Password == null)
+			_connection.Open();
+			try
 			{
-				throw new ArgumentException("Right now, this method can only be used to update password. Sorry.");	
-			}
-			string commandText = string.Format(
-            	"select count(*) from Accounts where Name = {0} and Password = {1}",
-               	account.Name, password);
-			int numberOfAccounts;
-			using (SqliteCommand command = new SqliteCommand(commandText, _connection))
-			{
-				numberOfAccounts = (int) command.ExecuteScalar();	
-			}
-			
-			if (numberOfAccounts < 1) 
-			{
-				// This name and password doesn't indicate an existing account
-				return false;	
-			}
-			else
-			{
-				commandText = string.Format(
-					"update Accounts set Password = {1} WHERE Name = {0} AND Password = {2})",                       
-					account.Name, account.Password, password);
+				if (account.Password == null)
+				{
+					throw new ArgumentException("Right now, this method can only be used to update password. Sorry.");	
+				}
+				string commandText = "select count(*) from Accounts where Name=@name and Password=@password";
+				int numberOfAccounts;
 				using (SqliteCommand command = new SqliteCommand(commandText, _connection))
 				{
-					command.ExecuteNonQuery();
-					return true;
+					command.Parameters.AddWithValue("@name", account.Name);
+					command.Parameters.AddWithValue("@password", account.Password);
+					numberOfAccounts = (int) command.ExecuteScalar();	
 				}
+				
+				if (numberOfAccounts < 1) 
+				{
+					// This name and password doesn't indicate an existing account
+					return false;	
+				}
+				else
+				{
+					commandText = "update Accounts set Password=@newpassword WHERE Name=@name AND Password=@oldpassword";
+					using (SqliteCommand command = new SqliteCommand(commandText, _connection))
+					{
+						command.Parameters.AddWithValue("@name", account.Name);
+						command.Parameters.AddWithValue("@oldpassword", password);
+						command.Parameters.AddWithValue("@newpassword", account.Password);
+						command.ExecuteNonQuery();
+						return true;
+					}
+				}
+			}
+			finally
+			{
+				_connection.Close();
 			}
 		} 
 		
