@@ -110,6 +110,7 @@ namespace Mural
 				}
 				break;
 			case "quit":
+			case "//quit":
 				session.SendLineToUser("Goodbye!");
 				session.Disconnect();
 				break;
