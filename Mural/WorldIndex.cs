@@ -17,9 +17,17 @@ namespace Mural
 			Index.Add("furrymuck", new ServerAddress("muck.furry.com", 8899));
 		}
 		
+		public WorldRouter GetRouterForWorld(string worldName)
+		{
+			// At the moment, this assumes all worlds are telnet passthroughs.
+			ServerAddress worldAddress = GetServerAddressForWorld(worldName);
+			TelnetPassthrough passthroughSession = new TelnetPassthrough(worldAddress);
+			return passthroughSession;
+		}
+		
 		// At the moment, this thing doesn't know what to do with non-external worlds.
 		// This should probably not be the permanent way this communicates.
-		public ServerAddress GetServerAddressForWorld (string worldName)
+		protected ServerAddress GetServerAddressForWorld (string worldName)
 		{
 			return Index[worldName];
 		}

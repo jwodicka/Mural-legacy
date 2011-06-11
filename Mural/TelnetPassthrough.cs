@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace Mural
 {
-	public class TelnetPassthrough : ILineConsumer
+	public class TelnetPassthrough : WorldRouter
 	{
 		public TelnetPassthrough(string remoteHostName, int remotePort)
 		{
@@ -20,7 +20,7 @@ namespace Mural
 		
 		// This should be a little more cautious about what happens if it gets called when it's already connected.
 		// Also, this is full of synchronous network calls. So very not-ready-for-prime-time.
-		public bool Connect()
+		public override bool Connect()
 		{
 			Socket outboundSocket = null;
 			
@@ -65,7 +65,7 @@ namespace Mural
 			}
 		}
 		
-		public void HandleLineReadyEvent(object sender, LineReadyEventArgs args) 
+		public override void HandleLineReadyEvent(object sender, LineReadyEventArgs args) 
 		{
 			SynchronousSession senderSession = sender as SynchronousSession;
 			
@@ -80,39 +80,12 @@ namespace Mural
 			}
 		}
 		
-		public void HandleDisconnectEvent(object sender, EventArgs args)
+		public override void HandleDisconnectEvent(object sender, EventArgs args)
 		{
 			SynchronousSession session = sender as SynchronousSession;
 			session.DisconnectLineConsumer(this);
 			
 			DisconnectRemote();
-		}
-		
-		public void AddSource (IResponseConsumer source) 
-		{
-			if (_source != null)
-			{
-				throw new Exception("TelnetPassthrough can only have one source.");	
-			}
-			else
-			{
-				SynchronousSession synchronousSource = source as SynchronousSession;
-				if (synchronousSource == null)
-				{
-					throw new Exception("TelnetPassthrough must have a SynchronousSource as a source.");	
-				}
-				else
-				{
-					_source = synchronousSource;
-				}
-			}
-		}
-		public void RemoveSource (IResponseConsumer source)
-		{
-			if (_source == source)
-			{
-				_source = null;
-			}
 		}
 		
 		private OutboundSessionLineConsumer _outboundSessionLineConsumer;
@@ -157,7 +130,7 @@ namespace Mural
 		
 		private void SendLineToUser(string line)
 		{
-			_source.SendLineToUser(line);
+			Source.SendLineToUser(line);
 		}
 		
 		private void ProcessLineAsCommand(SynchronousSession origin, string line)
@@ -174,9 +147,9 @@ namespace Mural
 				switch (args[0].Trim().ToLower())
 				{
 				case "quit":
-					_source.SendLineToUser("Goodbye!");
-					_source.Disconnect();
-					_source.DisconnectLineConsumer(this);
+					Source.SendLineToUser("Goodbye!");
+					Source.Disconnect();
+					Source.DisconnectLineConsumer(this);
 					DisconnectRemote();
 					break;
 				case "detach":
@@ -189,7 +162,7 @@ namespace Mural
 					{
 						int.TryParse(args[1], out linesToRecall);
 					}
-					CharacterSession session = _source as CharacterSession;
+					CharacterSession session = Source as CharacterSession;
 					if (session != null)
 					{
 						if (session.Buffer != null)
@@ -247,7 +220,6 @@ namespace Mural
 		
 		private string _commandPrefix = "//";
 		
-		private SynchronousSession _source;
 		private string _remoteHostName;
 		private int _remotePort;
 		

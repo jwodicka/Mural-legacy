@@ -27,9 +27,8 @@ namespace Mural
 				Index.Add(key, characterSession);
 				
 				// Connect it to the relevant world
-				ServerAddress worldAddress = LocalWorldIndex.GetServerAddressForWorld(world);
-				TelnetPassthrough passthroughSession = new TelnetPassthrough(worldAddress);
-				characterSession.ConnectLineConsumer(passthroughSession);
+				WorldRouter worldRouter = LocalWorldIndex.GetRouterForWorld(world);
+				characterSession.ConnectLineConsumer(worldRouter);
 				
 				// Establish a SessionBuffer for it
 				SessionBuffer buffer = new SessionBuffer();
@@ -39,7 +38,7 @@ namespace Mural
 				characterSession.Buffer = buffer; // Attach it to the object so we can find it later for recall.
 				
 				// Start the passthrough
-				passthroughSession.Connect();
+				worldRouter.Connect();
 				
 				// Return it
 				return characterSession;

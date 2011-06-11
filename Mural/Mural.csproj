@@ -61,6 +61,7 @@
     <Compile Include="IResponseConsumer.cs" />
     <Compile Include="SessionBuffer.cs" />
     <Compile Include="SslSession.cs" />
+    <Compile Include="WorldRouter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
