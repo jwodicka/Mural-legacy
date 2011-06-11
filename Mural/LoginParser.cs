@@ -91,11 +91,22 @@ namespace Mural
 							session.SendLineToUser(String.Format("Successfully logged in as {0}", account.Name));
 							
 							// Now try find a session for this character.
-							CharacterSession characterSession =
-								LocalCharacterSessionIndex.GetSessionForCharacter(character, world);
-							
-							// Connect this accountSession up to the characterSession
-							accountSession.ConnectLineConsumer(characterSession);
+							try 
+							{
+								CharacterSession characterSession =
+									LocalCharacterSessionIndex.GetSessionForCharacter(playerName, character, world);
+								// Connect this accountSession up to the characterSession
+								accountSession.ConnectLineConsumer(characterSession);
+							}
+							catch (Exception e)
+							{
+								if (e.Message == "User does not have permission to access this character.")
+								{
+									accountSession.SendLineToUser("That character doesn't exist, or you don't have permission for it.");
+									accountSession.Disconnect(); // Why disconnect? Because right now, we don't have a good
+																 // parser scenario for "logged into account but not character."
+								}
+							}
 
 						}
 					}
