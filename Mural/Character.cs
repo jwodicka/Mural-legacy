@@ -25,6 +25,14 @@ namespace Mural
 			return String.Format("{0}{1}", Name, World).GetHashCode();
 		}
 		
+		public bool CanBeAccessedByUser(string userName)
+		{
+			// This is a quick naive implementation. We probably want to actually persist the
+			// ownership index longer.
+			CharacterOwnershipIndex ownershipIndex = new CharacterOwnershipIndex();
+			return ownershipIndex.DoesUserOwnCharacter(userName, Name, World);	
+		}
+		
 		public string Name
 		{
 			get

@@ -45,6 +45,14 @@ namespace Mural
 			}
 		}
 		
+		public bool CanAccessCharacter(string characterName, string worldName)
+		{
+			// This is a quick naive implementation. We probably want to actually persist the
+			// ownership index longer.
+			CharacterOwnershipIndex ownershipIndex = new CharacterOwnershipIndex();
+			return ownershipIndex.DoesUserOwnCharacter(this.Name, characterName, worldName);
+		}
+		
 		private string _name;
 		private string _password;
 	}
