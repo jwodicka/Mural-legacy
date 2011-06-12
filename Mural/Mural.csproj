@@ -63,6 +63,7 @@
     <Compile Include="SslSession.cs" />
     <Compile Include="WorldRouter.cs" />
     <Compile Include="CharacterOwnershipIndex.cs" />
+    <Compile Include="World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
