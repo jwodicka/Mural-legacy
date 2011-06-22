@@ -144,3 +144,7 @@ namespace Mural
 	}
 }
 
+			if (identity == null)
+			{
+				throw new ArgumentNullException("AccountSession must have a non-null account.");	
+			}
