@@ -14,48 +14,57 @@ namespace Mural
 		
 		public WorldIndex ()
 		{
-			Index.Add("furrymuck", new ServerAddress("muck.furry.com", 8899));
+			
 		}
 		
-		public WorldRouter GetRouterForWorld(string worldName)
+		public WorldRouter GetCharacterRouterForWorld(string characterName, string worldName)
 		{
-			// At the moment, this assumes all worlds are telnet passthroughs.
-			ServerAddress worldAddress = GetServerAddressForWorld(worldName);
-			TelnetPassthrough passthroughSession = new TelnetPassthrough(worldAddress);
-			return passthroughSession;
-		}
-		
-		// At the moment, this thing doesn't know what to do with non-external worlds.
-		// This should probably not be the permanent way this communicates.
-		protected ServerAddress GetServerAddressForWorld (string worldName)
-		{
-			return Index[worldName];
-		}
-		
-		protected Dictionary<string, ServerAddress> Index
-		{
-			get
+			if (!Worlds.ContainsKey(worldName))
 			{
-				if (_index == null)
+				World world = LocalWorldList.GetWorldByName(worldName); 
+				if (world != null)
 				{
-					_index = new Dictionary<string, ServerAddress>();	
+					Worlds.Add(worldName, world);
 				}
-				return _index;
+				else
+				{
+					throw new ArgumentException();
+				}
+			}
+			return Worlds[worldName].GetRouterForCharacter(characterName); 
+			
+			// At the moment, this assumes all worlds are telnet passthroughs.
+			//ServerAddress worldAddress = GetServerAddressForWorld(worldName);
+			//TelnetPassthrough passthroughSession = new TelnetPassthrough(worldAddress);
+			//return passthroughSession;
+		}
+		
+		protected Dictionary<string, World> Worlds
+		{
+			get 
+			{
+				if (_worlds == null)
+				{
+					_worlds = new Dictionary<string, World>();	
+				}
+				return _worlds;
 			}
 		}
 		
-		private Dictionary<string, ServerAddress> _index;
-	}
-	
-	public class ServerAddress
-	{
-		public ServerAddress(string hostname, int port)
+		protected WorldList LocalWorldList
 		{
-			Hostname = hostname;
-			Port = port;
+			get
+			{
+				if (_worldList == null)
+				{
+					_worldList = new HardcodedWorldList();	
+				}
+				return _worldList;
+			}
 		}
-		public string Hostname;
-		public int Port;
+		
+		private Dictionary<string, World> _worlds;
+		private WorldList _worldList;
 	}
 }
 

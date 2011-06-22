@@ -64,6 +64,9 @@
     <Compile Include="WorldRouter.cs" />
     <Compile Include="CharacterOwnershipIndex.cs" />
     <Compile Include="World.cs" />
+    <Compile Include="WorldList.cs" />
+    <Compile Include="RemoteSSLWorld.cs" />
+    <Compile Include="Account.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -48,7 +48,7 @@ namespace Mural
 					Index.Add(key, characterSession);
 					
 					// Connect it to the relevant world
-					WorldRouter worldRouter = LocalWorldIndex.GetRouterForWorld(worldName);
+					WorldRouter worldRouter = LocalWorldIndex.GetCharacterRouterForWorld(characterName, worldName);
 					characterSession.ConnectLineConsumer(worldRouter);
 					
 					// Establish a SessionBuffer for it
