@@ -5,9 +5,6 @@ namespace Mural
 	/// <summary>
 	/// A session that is authenticated as belonging to a specified Account.
 	/// </summary>
-	/// <exception cref='Exception'>
-	/// Represents errors that occur during application execution.
-	/// </exception>
 	public class AccountSession : SynchronousSession, ILineConsumer, IAccountAuthenticated
 	{
 		/// <summary>
@@ -19,6 +16,10 @@ namespace Mural
 		/// </param>
 		public AccountSession (Account identity)
 		{
+			if (identity == null)
+			{
+				throw new ArgumentNullException("AccountSession must have a non-null account.");	
+			}
 			_identity = identity;
 		}
 		
@@ -107,7 +108,7 @@ namespace Mural
 				SynchronousSession synchronousSource = source as SynchronousSession;
 				if (synchronousSource == null)
 				{
-					throw new Exception("AccountSession must have a SynchronousSource as a source.");	
+					throw new Exception("AccountSession must have a SynchronousSession as a source.");	
 				}
 				else
 				{
@@ -144,7 +145,3 @@ namespace Mural
 	}
 }
 
-			if (identity == null)
-			{
-				throw new ArgumentNullException("AccountSession must have a non-null account.");	
-			}
