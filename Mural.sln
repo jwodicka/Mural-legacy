@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mural", "Mural\Mural.csproj", "{FA7BA1DF-EE48-4FFD-A615-07672201D614}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mural.Test", "Mural.Test\Mural.Test.csproj", "{FB9D2C12-3A52-49D9-B2D6-2E608EC73BDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -13,6 +15,10 @@ Global
 		{FA7BA1DF-EE48-4FFD-A615-07672201D614}.Debug|x86.Build.0 = Debug|x86
 		{FA7BA1DF-EE48-4FFD-A615-07672201D614}.Release|x86.ActiveCfg = Release|x86
 		{FA7BA1DF-EE48-4FFD-A615-07672201D614}.Release|x86.Build.0 = Release|x86
+		{FB9D2C12-3A52-49D9-B2D6-2E608EC73BDF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FB9D2C12-3A52-49D9-B2D6-2E608EC73BDF}.Debug|x86.Build.0 = Debug|Any CPU
+		{FB9D2C12-3A52-49D9-B2D6-2E608EC73BDF}.Release|x86.ActiveCfg = Release|Any CPU
+		{FB9D2C12-3A52-49D9-B2D6-2E608EC73BDF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Mural\Mural.csproj
