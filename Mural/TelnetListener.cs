@@ -65,7 +65,7 @@ namespace Mural
 			TelnetSession session = new TelnetSession(handler);
 			
 			// Hook the session up to the default parser for this system.
-			session.ConnectLineConsumer(_defaultParser);
+			_defaultParser.AddSource(session);
 			
 			// Start the TelnetSession running.
 			session.BeginRecieve();

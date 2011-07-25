@@ -1,15 +1,31 @@
 using System;
 namespace Mural
 {
-	public class RedirectingParser : ILineConsumer
+	public class RedirectingParser : BasicLineConsumer
 	{
 		public RedirectingParser ()
 		{
 		}
 		
-		public void HandleLineReadyEvent(object sender, LineReadyEventArgs args) 
+		public override void HandleUserEvent(object sender, UserEventArgs args) 
 		{
-			string line = args.Line;
+			switch (args.EventType)
+			{
+			case "LineReady":
+				var lineArgs = args as LineReadyEventArgs;
+				HandleLineReadyEvent(sender, lineArgs.Line);
+				break;
+			case "Disconnect":
+				// Break the listening relationship with the disconnected sender.
+				RemoveSource(sender as IResponseConsumer);
+				break;
+			default:
+				throw new NotImplementedException(String.Format("Unsupported EventType: {0}", args.EventType));
+			}
+		}
+		
+		private void HandleLineReadyEvent(object sender, string line) 
+		{
 			Console.WriteLine("Redirector parsing: {0}", line);
 			
 			string[] command = line.Split(' ');
@@ -30,78 +46,70 @@ namespace Mural
 				switch (command[0].ToLower().Trim())
 				{
 				case "echo":
-					session.SendLineToUser("Switching to echo mode!");	
+					SendLineToUser("Switching to echo mode!");	
 					RedirectToParser(session, ReusableEchoParser);
 					break;
 				case "login":
 					if (account == null)
 					{
-						session.SendLineToUser("Switching to login mode!");	
+						SendLineToUser("Switching to login mode!");	
 						RedirectToParser(session, ReusableLoginParser);
 					}
 					else
 					{
-						session.SendLineToUser(String.Format("Already logged in as {0}!", account.Name));
+						SendLineToUser(String.Format("Already logged in as {0}!", account.Name));
 					}
 					break;
 				case "connect":
 				case "con":
 					if (account == null)
 					{
-						session.SendLineToUser("Please log in before you try to make outbound connections.");	
+						SendLineToUser("Please log in before you try to make outbound connections.");	
 					}
 					else
 					{
 						int port;
 						if (command.Length != 3 || !Int32.TryParse(command[2], out port))
 						{
-							session.SendLineToUser("Connect syntax:");
-							session.SendLineToUser("  connect <hostname> <port>");
+							SendLineToUser("Connect syntax:");
+							SendLineToUser("  connect <hostname> <port>");
 						}
 						else
 						{
 							string hostname = command[1];
-							session.SendLineToUser(String.Format("Connecting to {0}, port {1}", hostname, port));
+							SendLineToUser(String.Format("Connecting to {0}, port {1}", hostname, port));
 							TelnetPassthrough passthroughParser = new TelnetPassthrough(hostname, port);
 							if (passthroughParser.Connect())
 							{
-								session.SendLineToUser("Connected!");
+								SendLineToUser("Connected!");
 								RedirectToParser(session, passthroughParser);
 							}
 							else
 							{
-								session.SendLineToUser("Connection failed.");	
+								SendLineToUser("Connection failed.");	
 							}
 						}
 					}
 					break;
 				case "quit":
-					session.SendLineToUser("Goodbye!");
-					session.Disconnect();
+					SendLineToUser("Goodbye!");
+					SendGlobalDisconnectRequestToUser();
 					break;
 				default:
-					session.SendLineToUser(String.Format("I don't have a parser named {0}!", command[0]));
+					SendLineToUser(String.Format("I don't have a parser named {0}!", command[0]));
 					break;
 				}
 			}
 		}
-		
-		// The redirecting parser does nothing when the user disconnects.
-		public void HandleDisconnectEvent(object sender, EventArgs args)
-		{
-		}
-		
-		// Doesn't care about its sources
-		public void AddSource (IResponseConsumer source) {}
-		public void RemoveSource (IResponseConsumer source) {}
-		
+				
 		private void RedirectToParser(SynchronousSession session, ILineConsumer parser)
 		{
-			// Add the new parser, then remove this as a line consumer.
-			session.ConnectLineConsumer(parser);
-			session.DisconnectLineConsumer(this);
+			// Add the new parser, then remove this session as a source
+			parser.AddSource(session);
+			this.RemoveSource(session);
 		}
 		
+		// TODO: The construction here should be replaced by an IoC construct for better testability. Ninject, perhaps?
 		EchoParser ReusableEchoParser
 		{
 			get

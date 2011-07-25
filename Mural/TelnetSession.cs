@@ -38,14 +38,34 @@ namespace Mural
 		{
 			ConnectionStream.BeginRead(
 				_buffer, 
-				0, // Offset into the buffer - we don't offset! 
+				0, // The offset into the buffer; we don't offset. 
 				_bufferLength, 
 				new AsyncCallback(TelnetSession.RecieveText),
 				this);
 		}
 		
-		public override void SendLineToUser(string line)
+		public override void HandleResponseEvent (object sender, ResponseEventArgs args)
 		{
+			switch(args.EventType)
+			{
+			case "ResponseLine":
+				SendLineToUser(args as ResponseLineEventArgs);
+				break;
+			case "RequestDisconnect":
+				Disconnect(args as RequestDisconnectEventArgs);				
+				break;
+			default:
+				throw new NotSupportedException(String.Format("Unsupported EventType: {0}", args.EventType));
+			}
+		}
+		
+		private void SendLineToUser(ResponseLineEventArgs args)
+		{
+			SendLineToUser(args.Line);	
+		}
+			
+		private void SendLineToUser(string line)
+		{	
 			// Right now, this is a synchronous send. This should be made asynchronous before too long.
 			byte[] buffer = Encoding.ASCII.GetBytes(line);
 			ConnectionStream.Write(buffer, 0, buffer.Length);
@@ -55,13 +75,28 @@ namespace Mural
 			ConnectionStream.Write(buffer, 0, buffer.Length);
 		}
 		
-		public override void Disconnect()
+		private void Disconnect(RequestDisconnectEventArgs args)
 		{
-			ConnectionStream.Close();
-			_sessionSocket.Disconnect(false); // You must disconnect the underlying socket explicitly.
-			
-			Console.WriteLine("Session disconnected by server.");
-			OnRaiseDisconnectEvent();
+			Console.WriteLine("{0} Recieved Disconnect Event", Identifier);
+			if (DisconnectRequestApplies(args))
+			{
+				ConnectionStream.Close();
+				_sessionSocket.Disconnect(false); // You must disconnect the underlying socket explicitly.
+				
+				Console.WriteLine("Session {0} disconnected by server.", Identifier);
+				OnRaiseDisconnectEvent(); // Inform the objects that are listening to this one that it no longer exists.				
+			}
+		}
+		
+		// TODO: This logic might make more sense on the args object,
+		// called as args.AppliesTo(ILineConsumer);
+		private bool DisconnectRequestApplies(RequestDisconnectEventArgs args)
+		{
+			return args.Type == RequestDisconnectEventArgs.RequestType.All ||
+				(args.Type == RequestDisconnectEventArgs.RequestType.Only &&
+				 args.Identifiers.Contains(this.Identifier)) ||
+				(args.Type == RequestDisconnectEventArgs.RequestType.Except &&
+				 !args.Identifiers.Contains(this.Identifier));
 		}
 		
 		private static void RecieveText(IAsyncResult asyncResult)
@@ -75,7 +110,10 @@ namespace Mural
 			{
 				state._lineBuilder.Append(Encoding.ASCII.GetString(state._buffer, 0, bytesRead));
 				state.ProcessCompleteLines();
-				state.BeginRecieve();
+				if (state._sessionSocket.Connected)
+				{
+					state.BeginRecieve();
+				}
 			}
 			else
 			{
@@ -109,7 +147,7 @@ namespace Mural
 				
 				// Raise an event that the input line is ready to be parsed.
 				Console.WriteLine("Input line: {0}", completeLine);
-				LineReadyEventArgs eventArgs = new LineReadyEventArgs(completeLine, this);
+				LineReadyEventArgs eventArgs = new LineReadyEventArgs(completeLine, this.Identifier, SendLineToUser);
 				OnRaiseLineReadyEvent(eventArgs);
 				
 				input = input.Substring(newlinePosition + 1);

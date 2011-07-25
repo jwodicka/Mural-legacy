@@ -1,44 +1,58 @@
 using System;
 namespace Mural
 {
-	public class EchoParser : ILineConsumer
+	public class EchoParser : BasicLineConsumer
 	{
 		public EchoParser ()
 		{
 		}
 		
-		public void HandleLineReadyEvent(object sender, LineReadyEventArgs args) 
+		public override void HandleUserEvent(object sender, UserEventArgs args) 
 		{
-			string line = args.Line.Trim();
+			switch (args.EventType)
+			{
+			case "LineReady":
+				var lineArgs = args as LineReadyEventArgs;
+				string line = lineArgs.Line.Trim();
+				HandleLineReadyEvent(sender, line);
+				break;
+			case "Disconnect":
+				// Break the listening relationship with the disconnected sender.
+				RemoveSource(sender as IResponseConsumer);
+				break;
+			default:
+				throw new NotImplementedException(String.Format("Unsupported EventType: {0}", args.EventType));
+			}
+		}
+		
+		private void HandleLineReadyEvent(object sender, string line) 
+		{
 			Console.WriteLine("Echoing: {0}", line);
 			
-			SynchronousSession session = sender as SynchronousSession;
+			var session = sender as IResponseConsumer;
 			if (session == null)
 			{
-				Console.Error.WriteLine("Got a LineReadyEvent from something that was not a SynchronousSession.");
+				Console.Error.WriteLine("Got a LineReadyEvent from something that was not an IResponseConsumer.");
 			}
 			else
 			{
 				if (line.ToLower() == "quit")
 				{
-					session.SendLineToUser("Goodbye! (Goodbye!)");
-					session.DisconnectLineConsumer(this);
-					session.Disconnect();
+					SendLineToUser("Goodbye! (Goodbye!)");
+					SendGlobalDisconnectRequestToUser();
+					
+					// TODO: I think this will be pushed back up the chain as a consequence of the above request, and 
+					// there's no need to remove this explicitly. But I'm not certain, and it should be safe to call 
+					// RemoveSource an extra time. 
+					RemoveSource(session);
 				}
-				
-				// Send this message back to the originating session.
-				session.SendLineToUser(line);
+				else
+				{
+					// Send this message back to the originating session.
+					SendLineToUser(line);
+				}
 			}
-		}
-		
-		// The echo parser does nothing when the user disconnects.
-		public void HandleDisconnectEvent(object sender, EventArgs args)
-		{
-		}
-		
-		// Doesn't care about its sources
-		public void AddSource (IResponseConsumer source) {}
-		public void RemoveSource (IResponseConsumer source) {}
+		}		
 	}
 }
 

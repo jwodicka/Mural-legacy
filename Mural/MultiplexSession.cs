@@ -9,59 +9,58 @@ namespace Mural
 		{
 		}
 		
-		public override void Disconnect ()
+		public event EventHandler<ResponseEventArgs> RaiseResponseEvent;
+		
+		protected void OnRaiseResponseEvent(ResponseEventArgs args)
 		{
-			Console.WriteLine("Multiplex session disconnecting.");
-			while (Sessions.Count > 0)
+			// Make a temporary copy of the event to avoid the possibility of
+			// a race condition if the last subscriber unsubscribes immediately
+			// after the null check and before the event is raised.
+			// This is modeled after: http://msdn.microsoft.com/en-us/library/w369ty8x.aspx
+			// TODO: It might be nice to understand the details of what race condition this is preventing.
+			EventHandler<ResponseEventArgs> handler = RaiseResponseEvent;	
+			
+			// Event will be null if there are no subscribers
+			if (handler != null)
 			{
-				SynchronousSession synchronousSession = Sessions[0] as SynchronousSession;
-				if (synchronousSession != null)
-				{
-					synchronousSession.Disconnect();
-				}
-				Sessions.Remove(Sessions[0]);
-			}
-		}
-		public override void SendLineToUser (string line)
-		{
-			foreach (IResponseConsumer session in Sessions)
-			{
-				session.SendLineToUser(line);	
-			}
+				handler(this, args);	
+			}	
 		}
 		
-		public void HandleDisconnectEvent (object sender, EventArgs args)
+		// Just reraise all events you get. The multiplexing will just work as a consequence of having multiple
+		// upstream listeners.
+		public override void HandleResponseEvent (object sender, ResponseEventArgs args)
 		{
-			SynchronousSession senderSession = sender as SynchronousSession;
-			Sessions.Remove(senderSession);
+			OnRaiseResponseEvent(args);
 		}
-		public void HandleLineReadyEvent (object sender, LineReadyEventArgs args)
+				
+		public void HandleUserEvent (object sender, UserEventArgs args)
 		{
-			OnRaiseLineReadyEvent(args);
+			switch (args.EventType)
+			{
+			case "LineReady":
+				OnRaiseLineReadyEvent(args as LineReadyEventArgs);
+				break;
+			case "Disconnect":
+				// Break the listening relationship with the disconnected sender.
+				RemoveSource(sender as IResponseConsumer);
+				break;
+			default:
+				throw new NotImplementedException(String.Format("Unsupported EventType: {0}", args.EventType));
+			}
 		}
 		
 		public void AddSource (IResponseConsumer source)
 		{
-			Sessions.Add(source);
+			this.RaiseResponseEvent += source.HandleResponseEvent;
+			source.RaiseUserEvent += this.HandleUserEvent;
 		}
+		
 		public void RemoveSource (IResponseConsumer source)
 		{
-			Sessions.Remove(source);
+			this.RaiseResponseEvent -= source.HandleResponseEvent;
+			source.RaiseUserEvent -= this.HandleUserEvent;	
 		}
-		
-		private List<IResponseConsumer> Sessions
-		{
-			get
-			{
-				if (_sessions == null)
-				{
-					_sessions = new List<IResponseConsumer>();	
-				}
-				return _sessions;
-			}
-		}
-		
-		private List<IResponseConsumer> _sessions;
 	}
 }
 

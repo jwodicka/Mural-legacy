@@ -67,6 +67,12 @@
     <Compile Include="WorldList.cs" />
     <Compile Include="RemoteSSLWorld.cs" />
     <Compile Include="Account.cs" />
+    <Compile Include="UserEventArgs.cs" />
+    <Compile Include="DisconnectEventArgs.cs" />
+    <Compile Include="ResponseEventArgs.cs" />
+    <Compile Include="RequestDisconnectEventArgs.cs" />
+    <Compile Include="ResponseLineEventArgs.cs" />
+    <Compile Include="BasicLineConsumer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

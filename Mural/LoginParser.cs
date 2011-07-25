@@ -3,27 +3,30 @@ using System.IO; // Referenced while we need to do path manipulation to get the 
 
 namespace Mural
 {
-	public class LoginParser : ILineConsumer
+	public class LoginParser : BasicLineConsumer
 	{
 		public LoginParser ()
 		{
 		}
 		
-		public void HandleLineReadyEvent(object sender, LineReadyEventArgs args) 
+		public override void HandleUserEvent(object sender, UserEventArgs args) 
 		{
-			SynchronousSession session = sender as SynchronousSession;
-			ParseLine(session, args.Line);
+			switch (args.EventType)
+			{
+			case "LineReady":
+				var session = sender as SynchronousSession;
+				var lineArgs = args as LineReadyEventArgs;
+				ParseLine(session, lineArgs.Line);
+				break;
+			case "Disconnect":
+				// Break the listening relationship with the disconnected sender.
+				RemoveSource(sender as IResponseConsumer);
+				break;
+			default:
+				throw new NotImplementedException(String.Format("Unsupported EventType: {0}", args.EventType));
+			}
 		}
-		
-		// Login parser doesn't care if you disconnect.
-		public void HandleDisconnectEvent(object sender, EventArgs args)
-		{
-		}
-		
-		// Doesn't care about its sources.
-		public void AddSource (IResponseConsumer source) {}
-		public void RemoveSource (IResponseConsumer source) {}
-		
+						
 		protected AccountStore LocalAccountStore
 		{
 			get
@@ -77,7 +80,7 @@ namespace Mural
 						int characterWorldSeparator = characterAndWorld.LastIndexOf('@');
 						if (characterWorldSeparator < 0)
 						{
-							session.SendLineToUser("Character and world must be separated by an @.");	
+							SendLineToUser("Character and world must be separated by an @.");	
 						}
 						else
 						{
@@ -86,47 +89,48 @@ namespace Mural
 							
 							// Connect an AccountSession to the originating session
 							AccountSession accountSession = new AccountSession(account);
-							session.DisconnectLineConsumer(this);
-							session.ConnectLineConsumer(accountSession);
-							session.SendLineToUser(String.Format("Successfully logged in as {0}", account.Name));
+							accountSession.AddSource(session);
+							SendLineToUser(String.Format("Successfully logged in as {0}", account.Name));
 							
-							// Now try find a session for this character.
+							// Now try to find a session for this character.
 							try 
 							{
 								CharacterSession characterSession =
 									LocalCharacterSessionIndex.GetSessionForCharacter(playerName, character, world);
 								// Connect this accountSession up to the characterSession
-								accountSession.ConnectLineConsumer(characterSession);
+								characterSession.AddSource(accountSession);
 							}
 							catch (Exception e)
 							{
 								if (e.Message == "User does not have permission to access this character.")
 								{
-									accountSession.SendLineToUser("That character doesn't exist, or you don't have permission for it.");
-									accountSession.Disconnect(); // Why disconnect? Because right now, we don't have a good
-																 // parser scenario for "logged into account but not character."
+									SendLineToUser("That character doesn't exist, or you don't have permission for it.");
+									SendGlobalDisconnectRequestToUser(); // Why disconnect? Because right now, we don't have a good
+																  // parser scenario for "logged into account but not character."
 								}
 							}
-
+							// Finally, disconnect this session from the parser. Wait until the last moment, so that 
+							// we can reply to the user in case of errors.
+							this.RemoveSource(session);
 						}
 					}
 					else
 					{
-						session.SendLineToUser("Incorrect username or password.");	
+						SendLineToUser("Incorrect username or password.");	
 					}
 				}
 				else
 				{
-					session.SendLineToUser("Try \"connect username character@world password\" to connect.");
+					SendLineToUser("Try \"connect username character@world password\" to connect.");
 				}
 				break;
 			case "quit":
 			case "//quit":
-				session.SendLineToUser("Goodbye!");
-				session.Disconnect();
+				SendLineToUser("Goodbye!");
+				SendGlobalDisconnectRequestToUser();
 				break;
 			default:
-				session.SendLineToUser("I didn't understand that.");
+				SendLineToUser("I didn't understand that.");
 				break;
 			}
 		}

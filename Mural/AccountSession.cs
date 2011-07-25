@@ -23,6 +23,29 @@ namespace Mural
 			_identity = identity;
 		}
 		
+		public event EventHandler<ResponseEventArgs> RaiseResponseEvent;
+		
+		protected void OnRaiseResponseEvent(ResponseEventArgs args)
+		{
+			// Make a temporary copy of the event to avoid the possibility of
+			// a race condition if the last subscriber unsubscribes immediately
+			// after the null check and before the event is raised.
+			// This is modeled after: http://msdn.microsoft.com/en-us/library/w369ty8x.aspx
+			// TODO: It might be nice to understand the details of what race condition this is preventing.
+			EventHandler<ResponseEventArgs> handler = RaiseResponseEvent;	
+			
+			// Event will be null if there are no subscribers
+			if (handler != null)
+			{
+				handler(this, args);	
+			}	
+		}
+		
+		public override void HandleResponseEvent (object sender, ResponseEventArgs args)
+		{
+			OnRaiseResponseEvent(args);
+		}
+		
 		/// <summary>
 		/// The <see cref="Account"/> that this session is authenticated as.
 		/// </summary>
@@ -35,6 +58,20 @@ namespace Mural
 			{
 				return _identity;
 			}
+		}
+
+		// Just pass the event through.
+		// TODO: Annotate the event with the account.
+		public void HandleUserEvent (object sender, UserEventArgs args)
+		{
+			if (args.EventType == "Disconnect")
+			{
+				// Break the listening relationship with the disconnected sender.
+				RemoveSource(sender as IResponseConsumer);	
+			}
+			
+			// Reraise the event, whether or not it's a disconnection.
+			OnRaiseUserEvent(args);
 		}
 		
 		/// <summary>
@@ -54,94 +91,28 @@ namespace Mural
 			OnRaiseLineReadyEvent(args);
 		}
 		
-		/// <summary>
-		/// Event listener for DiconnectEvents.
-		/// 
-		/// Reraises the event as coming from this account.
-		/// </summary>
-		/// <param name='sender'>
-		/// The sender of the event. Under normal usage, should correspond to the source that this
-		/// object is aware of.
-		/// </param>
-		/// <param name='args'>
-		/// The event arguments, which cannot contain any data by default. Expected to be null.
-		/// </param>
 		public void HandleDisconnectEvent (object sender, EventArgs args)
 		{
 			OnRaiseDisconnectEvent();
 		}
 		
-		public override void SendLineToUser (string line)
+		public void AddSource (IResponseConsumer source)
 		{
-			_source.SendLineToUser(line);
+			this.RaiseResponseEvent += source.HandleResponseEvent;
+			source.RaiseUserEvent += this.HandleUserEvent;
 		}
 		
-		public override void Disconnect ()
-		{
-			_source.Disconnect();
-		}
-		
-		/// <summary>
-		/// Adds a SynchronousSession as a message origin for this session. Will fail if there is already 
-		/// a source for this session. 
-		/// </summary>
-		/// <param name='source'>
-		/// The upstream source of messages.
-		/// 
-		/// AccountSession will reject source if it is not a SynchronousSession.
-		/// (Why? Because it needs the ability to disconnect the upstream session if it is disconnected.
-		/// But maybe it can deal with only forwarding disconnect messages to the source if we can cast 
-		/// source into a SynchronousSession? Or maybe AccountSession should come in Sync and Async 
-		/// flavors?)
-		/// </param>
-		/// <exception cref='Exception'>
-		/// Thrown if there is already a source connected, or if the source is not valid.
-		/// </exception>
-		public void AddSource (IResponseConsumer source) 
-		{
-			if (_source != null)
-			{
-				throw new Exception("AccountSession can only have one source.");	
-			}
-			else
-			{
-				SynchronousSession synchronousSource = source as SynchronousSession;
-				if (synchronousSource == null)
-				{
-					throw new Exception("AccountSession must have a SynchronousSession as a source.");	
-				}
-				else
-				{
-					_source = synchronousSource;
-				}
-			}
-		}
-		
-		/// <summary>
-		/// Removes the message origin for this session. Will do nothing if the object handed to it is 
-		/// not the source for this session.
-		/// </summary>
-		/// <param name='source'>
-		/// The upstream source of messages. Will be removed if and only if it is currently the source 
-		/// for this session.
-		/// </param>
 		public void RemoveSource (IResponseConsumer source)
 		{
-			if (_source == source)
-			{
-				_source = null;
-			}
+			this.RaiseResponseEvent -= source.HandleResponseEvent;
+			source.RaiseUserEvent -= this.HandleUserEvent;	
 		}
 		
+						
 		/// <summary>
 		/// Private backing variable for AccountIdentity.
 		/// </summary>
 		private Account _identity;
-		/// <summary>
-		/// The message origin for this session. Manipulated by AddSource and RemoveSource, used to route
-		/// messages upstream from this session.
-		/// </summary>
-		private SynchronousSession _source;
 	}
 }
 

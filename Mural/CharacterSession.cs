@@ -22,7 +22,7 @@ namespace Mural
 			}
 		}
 		
-		public SessionBuffer Buffer;
+		public SessionBuffer Buffer { get; set; }
 		
 		private Character _character;
 	}

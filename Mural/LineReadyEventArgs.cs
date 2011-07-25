@@ -1,14 +1,17 @@
 using System;
 namespace Mural
 {
-	public class LineReadyEventArgs : EventArgs 
+	public class LineReadyEventArgs : UserEventArgs 
 	{
-		public LineReadyEventArgs(string line, SynchronousSession origin) 
+		public LineReadyEventArgs(string line, string originIdentifier, ResponseDelegate responseHandler) 
+			: base(originIdentifier, responseHandler)
 		{
 			_line = line;
-			_origin = origin;
 		}
 		
+		/// <summary>
+		/// Gets or sets the line of input associated with this event.
+		/// </summary>
 		public string Line 
 		{
 			get
@@ -21,20 +24,15 @@ namespace Mural
 			}
 		}
 		
-		public SynchronousSession Origin
+		public override string EventType 
 		{
 			get
 			{
-				return _origin;	
-			}
-			set
-			{
-				_origin = value;	
+				return "LineReady";	
 			}
 		}
 		
 		private string _line;
-		private SynchronousSession _origin;
 	}
 }
 

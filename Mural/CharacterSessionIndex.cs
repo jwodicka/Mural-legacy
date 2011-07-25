@@ -49,14 +49,16 @@ namespace Mural
 					
 					// Connect it to the relevant world
 					WorldRouter worldRouter = LocalWorldIndex.GetCharacterRouterForWorld(characterName, worldName);
-					characterSession.ConnectLineConsumer(worldRouter);
+					worldRouter.AddSource(characterSession);
 					
 					// Establish a SessionBuffer for it
 					SessionBuffer buffer = new SessionBuffer();
 					// Connect the buffer both downstream and upstream.
-					characterSession.ConnectLineConsumer(buffer); // Technically, we never buffer lines going this way..
-					characterSession.AddSource(buffer); // These are the ones we buffer.
+					worldRouter.AddSource(buffer); // We'll buffer the responses we get from the worldRouter
+					buffer.AddSource(characterSession); // Technically, we never buffer lines going this way..
+					
 					characterSession.Buffer = buffer; // Attach it to the object so we can find it later for recall.
+					worldRouter.Buffer = buffer;
 					
 					// Start the passthrough
 					worldRouter.Connect();
