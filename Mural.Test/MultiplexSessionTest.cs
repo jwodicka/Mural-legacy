@@ -8,6 +8,9 @@ namespace Mural.Test
 	[TestFixture]
 	public class MultiplexSessionTest
 	{
+		/// <summary>
+		/// MultiplexSessions should forward lines they recieve.
+		/// </summary>
 		[Test]
 		public void ForwardsLineFromSourceToSink()
 		{
