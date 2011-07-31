@@ -1,0 +1,56 @@
+Mural
+=====
+
+Thanks for grabbing Mural. This codebase is unstable and thoroughly work-in-progress at the moment, and your contributions are quite appreciated.
+
+Getting Mural
+-------------
+
+You can grab Mural from https://github.com/jwodicka/Mural
+
+
+Running Mural
+-------------
+
+Right now, the only way to run Mural is to build it yourself. Mural is developed using the Mono runtime - it may work in Visual Studio, but the developers aren't promising anything on that build path. If you're interested in letting us know how we're doing on that front, get in touch!
+
+You will need:
+
+*   A recent version of Mono as of July 2011.
+    *TODO: What version are we actually dependent on?* 
+*   A copy of the MonoDevelop IDE.
+
+A Very Simple User Manual
+-------------------------
+
+When you start up Mural, it will listen for a telnet connection on port 8888.
+
+If you connect to Mural, you can issue commands against that connection.
+Right now, Mural understands the following commands when it is not acting as a proxy:
+
+*   connect _account_ _character_@_service_ _password_
+
+    Connects a session to a service (also called a "world" in parts of the codebase).
+
+    _account_ must be an account known to the system.
+
+    _password_ is the password for _account_ (Passwords are per-account, **not** per-character)
+
+    _service_ is the name of a known service that Mural can connect to. Services must be
+    known to Mural - to avoid having Mural act as an open proxy, Mural installations should
+    only forward connections to servers and ports known to have MU*-style services running
+    on them.
+
+    _character_ is the name of a known character on _service_. This is **not** necessarily
+    the name the remote service knows for the character; but is instead used to route
+    connections internal to Mural. If a connection is established to a character and service
+    which Mural is already connected to, the two connections will be merged, and a second
+    connection to the service will not be established. This is how connection-proxying works.
+
+*   quit
+
+    Disconnects from Mural.
+
+
+
+
