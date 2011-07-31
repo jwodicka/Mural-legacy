@@ -34,33 +34,7 @@ namespace Mural.Test
 			
 			accountSession.AddSource(source);
 		}
-		
-		[Test]
-		[ExpectedException(typeof(Exception))]
-		public void CannotAddNonSynchronousSource ()
-		{
-			Account account = new Account();
-			AccountSession accountSession = new AccountSession(account);
-			
-			IResponseConsumer source = new Mock<IResponseConsumer>().Object;
-			
-			accountSession.AddSource(source);
-		}
-		
-		[Test]
-		[ExpectedException(typeof(Exception))]
-		public void CannotAddMultipleSources ()
-		{
-			Account account = new Account();
-			AccountSession accountSession = new AccountSession(account);
-			
-			IResponseConsumer source1 = new Mock<SynchronousSession>().Object;
-			IResponseConsumer source2 = new Mock<SynchronousSession>().Object;
-			
-			accountSession.AddSource(source1);
-			accountSession.AddSource(source2);
-		}
-		
+				
 		[Test]
 		public void CanRemoveSource ()
 		{
