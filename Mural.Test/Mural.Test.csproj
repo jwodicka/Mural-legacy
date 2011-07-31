@@ -41,6 +41,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="AccountSessionTest.cs" />
     <Compile Include="MultiplexSessionTest.cs" />
+    <Compile Include="Mocks\MockResponseConsumer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -48,5 +49,8 @@
       <Project>{FA7BA1DF-EE48-4FFD-A615-07672201D614}</Project>
       <Name>Mural</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Mocks\" />
   </ItemGroup>
 </Project>
