@@ -1,6 +1,13 @@
 using System;
 namespace Mural
 {
+	/// <summary>
+	/// A character is a specific, public identity on a specific world / service.
+	/// 
+	/// The combination of character name and world name uniquely identify a character; for Mural's
+	/// purposes, no two characters on the same world may have the same name, but characters on
+	/// two different worlds may have the same name.
+	/// </summary>
 	public class Character
 	{
 		public Character (string name, string world)
@@ -29,6 +36,7 @@ namespace Mural
 		{
 			// This is a quick naive implementation. We probably want to actually persist the
 			// ownership index longer.
+			// TODO: Replace this with an IoC construct.
 			CharacterOwnershipIndex ownershipIndex = new CharacterOwnershipIndex();
 			return ownershipIndex.DoesUserOwnCharacter(userName, Name, World);	
 		}
