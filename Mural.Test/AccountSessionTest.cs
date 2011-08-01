@@ -24,42 +24,37 @@ namespace Mural.Test
 			_account = null;
 			_session = null;
 		}
-
+		
+		/// <summary>
+		/// It is an exception to attempt to construct an AccountSession with a null Account.
+		/// </summary>
 		[Test, ExpectedException(typeof (ArgumentNullException))]
 		public void CannotBeConstructedWithoutAccount ()
 		{
 			new AccountSession(null);	
 		}
 		
+		/// <summary>
+		/// Should be able to retrieve the account used to create this session.
+		/// </summary>
 		[Test]
 		public void ReturnsAccountIdentity ()
 		{
 			AccountSession session = new AccountSession(_account);
 			Assert.AreEqual(_account, session.AccountIdentity);
 		}
-
-		protected Mock<IResponseConsumer> HookUpMockSource()
-		{
-			Mock<IResponseConsumer> source = new Mock<IResponseConsumer>();
-			_session.AddSource(source.Object);
-			return source;
-		}
 		
-		protected Mock<ILineConsumer> HookUpMockSink()
-		{
-			Mock<ILineConsumer> sink = new Mock<ILineConsumer>();
-			_session.RaiseUserEvent += sink.Object.HandleUserEvent;
-			sink.Object.RaiseResponseEvent += _session.HandleResponseEvent;
-			return sink;
-		}
-		
+		/// <summary>
+		/// After adding a source, events should be passed through successfully in either
+		/// direction to/from source/sink.
+		/// </summary>
 		[Test]
-		public void CanAddSource ()
+		public void CanAddSource()
 		{
 			Mock<IResponseConsumer> source = new Mock<IResponseConsumer>();
 			_session.AddSource(source.Object);
 			
-			Mock<ILineConsumer> sink = HookUpMockSink();
+			Mock<ILineConsumer> sink = _session.WithMockSink();
 			
 			// Raise an event from the sink and verify it's passed to the source with
 			// the event source rewritten to the AccountSession.
@@ -74,11 +69,16 @@ namespace Mural.Test
 			sink.Verify(lc => lc.HandleUserEvent(_session, sourceArgs), Times.Once());
 		}
 		
+		/// <summary>
+		/// After a source has been added, RemoveSource should successfully remove it.  After
+		/// RemoveSource has been called, further events should not be passed either direction
+		/// to the source that was removed.
+		/// </summary>
 		[Test]
-		public void CanRemoveSource ()
+		public void CanRemoveSource()
 		{
-			Mock<IResponseConsumer> source = HookUpMockSource();
-			Mock<ILineConsumer> sink = HookUpMockSink();
+			Mock<IResponseConsumer> source = _session.WithMockSource();
+			Mock<ILineConsumer> sink = _session.WithMockSink();
 			
 			// Remove the source after having added it.
 			_session.RemoveSource(source.Object);
@@ -92,44 +92,61 @@ namespace Mural.Test
 			sink.Verify(lc => lc.HandleUserEvent(It.IsAny<object>(), It.IsAny<UserEventArgs>()), Times.Never());
 		}
 		
+		/// <summary>
+		/// ResponseLine events should be passed through, rewriting the event source
+		/// to be the AccountSession.
+		/// </summary>
 		[Test]
 		public void WillPassThroughResponseLineEvent()
 		{
-			Mock<IResponseConsumer> source = HookUpMockSource();
-			Mock<ILineConsumer> sink = HookUpMockSink();
+			Mock<IResponseConsumer> source = _session.WithMockSource();
+			Mock<ILineConsumer> sink = _session.WithMockSink();
 			
 			ResponseLineEventArgs args = new ResponseLineEventArgs("A line.");
 			sink.Raise(lc => lc.RaiseResponseEvent += null, args);
 			source.Verify(rc => rc.HandleResponseEvent(_session, args), Times.Once());
 		}
 		
+		/// <summary>
+		/// RequestDisconnect events should be passed through, rewriting the event source
+		/// to be the AccountSession.
+		/// </summary>
 		[Test]
 		public void WillPassThroughRequestDisconnectEvent()
 		{
-			Mock<IResponseConsumer> source = HookUpMockSource();
-			Mock<ILineConsumer> sink = HookUpMockSink();
+			Mock<IResponseConsumer> source = _session.WithMockSource();
+			Mock<ILineConsumer> sink = _session.WithMockSink();
 			
 			RequestDisconnectEventArgs args = new RequestDisconnectEventArgs();
 			sink.Raise(lc => lc.RaiseResponseEvent += null, args);
 			source.Verify(rc => rc.HandleResponseEvent(_session, args), Times.Once());
 		}
 		
+		/// <summary>
+		/// LineReady events should be passed through, rewriting the event source
+		/// to be the AccountSession.
+		/// </summary>
 		[Test]
 		public void WillPassThroughLineReadyEvent()
 		{
-			Mock<IResponseConsumer> source = HookUpMockSource();
-			Mock<ILineConsumer> sink = HookUpMockSink();
+			Mock<IResponseConsumer> source = _session.WithMockSource();
+			Mock<ILineConsumer> sink = _session.WithMockSink();
 			
 			LineReadyEventArgs args = new LineReadyEventArgs("A line.", "An origin.", null);
 			source.Raise(rc => rc.RaiseUserEvent += null, args);
 			sink.Verify(lc => lc.HandleUserEvent(_session, args), Times.Once());
 		}
 		
+		/// <summary>
+		/// Disconnect events should be passed through the AccountSession, and the source should
+		/// be removed during the processing of the event, so this will be the last event passed
+		/// through successfully.
+		/// </summary>
 		[Test]
 		public void WillPassThroughDisconnectEventAndRemoveSource()
 		{
-			Mock<IResponseConsumer> source = HookUpMockSource();
-			Mock<ILineConsumer> sink = HookUpMockSink();
+			Mock<IResponseConsumer> source = _session.WithMockSource();
+			Mock<ILineConsumer> sink = _session.WithMockSink();
 			
 			DisconnectEventArgs args = new DisconnectEventArgs("An origin.");
 			source.Raise(rc => rc.RaiseUserEvent += null, args);
