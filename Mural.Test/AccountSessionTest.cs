@@ -8,114 +8,138 @@ namespace Mural.Test
 	[TestFixture]
 	public class AccountSessionTest
 	{
-		[Test, Category("SadPath"), ExpectedException(typeof (ArgumentNullException))]
-		public void CannotBeConstructedWithoutAccount ()
-		{
-			new AccountSession(null);	
-		}
-		
-		#region Basic happy path setup.
 		Account _account;
 		AccountSession _session;
 		
-		[SetUp, Category("HappyPath")]
+		[SetUp]
 		public void SetUpTestObjects()
 		{
 			_account = new Account();
 			_session = new AccountSession(_account);
 		}
 		
-		[TearDown, Category("HappyPath")]
+		[TearDown]
 		public void TearDownTestObjects()
 		{
 			_account = null;
 			_session = null;
 		}
-		#endregion
+
+		[Test, ExpectedException(typeof (ArgumentNullException))]
+		public void CannotBeConstructedWithoutAccount ()
+		{
+			new AccountSession(null);	
+		}
 		
-		[Test, Category("HappyPath")]
+		[Test]
 		public void ReturnsAccountIdentity ()
 		{
-			Assert.AreEqual(_account, _session.AccountIdentity);
-		}
-		
-		[Test, Category("HappyPath")]
-		public void CanAddSynchronousSource ()
-		{
-			MockResponseConsumer source = new MockResponseConsumer();
-			_session.AddSource(source);
-			Assert.Contains(new EventHandler<UserEventArgs>(_session.HandleUserEvent), source.UserEventHandlers);
+			AccountSession session = new AccountSession(_account);
+			Assert.AreEqual(_account, session.AccountIdentity);
 		}
 
-		[Test, Category("HappyPath")]
+		protected Mock<IResponseConsumer> HookUpMockSource()
+		{
+			Mock<IResponseConsumer> source = new Mock<IResponseConsumer>();
+			_session.AddSource(source.Object);
+			return source;
+		}
+		
+		protected Mock<ILineConsumer> HookUpMockSink()
+		{
+			Mock<ILineConsumer> sink = new Mock<ILineConsumer>();
+			_session.RaiseUserEvent += sink.Object.HandleUserEvent;
+			sink.Object.RaiseResponseEvent += _session.HandleResponseEvent;
+			return sink;
+		}
+		
+		[Test]
+		public void CanAddSource ()
+		{
+			Mock<IResponseConsumer> source = new Mock<IResponseConsumer>();
+			_session.AddSource(source.Object);
+			
+			Mock<ILineConsumer> sink = HookUpMockSink();
+			
+			// Raise an event from the sink and verify it's passed to the source with
+			// the event source rewritten to the AccountSession.
+			ResponseEventArgs sinkArgs = new ResponseLineEventArgs("A line.");
+			sink.Raise(lc => lc.RaiseResponseEvent += null, sinkArgs);
+			source.Verify(rc => rc.HandleResponseEvent(_session, sinkArgs), Times.Once());
+			
+			// Raise an event from the source and verify it's passed to the sink with
+			// the event source rewritten to the AccountSession.
+			UserEventArgs sourceArgs = new LineReadyEventArgs("Another line.", "An origin.", null);
+			source.Raise(rc => rc.RaiseUserEvent += null, sourceArgs);
+			sink.Verify(lc => lc.HandleUserEvent(_session, sourceArgs), Times.Once());
+		}
+		
+		[Test]
 		public void CanRemoveSource ()
 		{
-			MockResponseConsumer source = new MockResponseConsumer();
-			_session.AddSource(source);
-			Assert.Contains(new EventHandler<UserEventArgs>(_session.HandleUserEvent), source.UserEventHandlers);
-			_session.RemoveSource(source);
-			Assert.IsEmpty(source.UserEventHandlers);
+			Mock<IResponseConsumer> source = HookUpMockSource();
+			Mock<ILineConsumer> sink = HookUpMockSink();
+			
+			// Remove the source after having added it.
+			_session.RemoveSource(source.Object);
+			
+			// Raise an event from the sink and verify the source is never notified.
+			sink.Raise(lc => lc.RaiseResponseEvent += null, new ResponseLineEventArgs("A line."));
+			source.Verify(rc => rc.HandleResponseEvent(It.IsAny<object>(), It.IsAny<ResponseEventArgs>()), Times.Never());
+			
+			// Raise an event from the source and verify the sink is never notified.
+			source.Raise(rc => rc.RaiseUserEvent += null, new LineReadyEventArgs("Another line.", "An origin.", null));
+			sink.Verify(lc => lc.HandleUserEvent(It.IsAny<object>(), It.IsAny<UserEventArgs>()), Times.Never());
 		}
 		
-		[Test, Category("HappyPath")]
+		[Test]
 		public void WillPassThroughResponseLineEvent()
 		{
-			ResponseEventArgs responseArgs = null;
-			_session.RaiseResponseEvent += (sender, e) => { responseArgs = (ResponseEventArgs) e; };
+			Mock<IResponseConsumer> source = HookUpMockSource();
+			Mock<ILineConsumer> sink = HookUpMockSink();
 			
-			const string receivedLine = "This is a line.";
-			_session.HandleResponseEvent(null, new ResponseLineEventArgs(receivedLine));
-			
-			Assert.IsNotNull(responseArgs);
-			Assert.IsInstanceOfType(typeof(ResponseLineEventArgs), responseArgs);
-			Assert.AreEqual(receivedLine, ((ResponseLineEventArgs)responseArgs).Line);
+			ResponseLineEventArgs args = new ResponseLineEventArgs("A line.");
+			sink.Raise(lc => lc.RaiseResponseEvent += null, args);
+			source.Verify(rc => rc.HandleResponseEvent(_session, args), Times.Once());
 		}
 		
-		[Test, Category("HappyPath")]
+		[Test]
+		public void WillPassThroughRequestDisconnectEvent()
+		{
+			Mock<IResponseConsumer> source = HookUpMockSource();
+			Mock<ILineConsumer> sink = HookUpMockSink();
+			
+			RequestDisconnectEventArgs args = new RequestDisconnectEventArgs();
+			sink.Raise(lc => lc.RaiseResponseEvent += null, args);
+			source.Verify(rc => rc.HandleResponseEvent(_session, args), Times.Once());
+		}
+		
+		[Test]
 		public void WillPassThroughLineReadyEvent()
 		{
-			UserEventArgs userArgs = null;
-			_session.RaiseUserEvent += (sender, e) => { userArgs = (UserEventArgs) e; };
+			Mock<IResponseConsumer> source = HookUpMockSource();
+			Mock<ILineConsumer> sink = HookUpMockSink();
 			
-			const string line = "This is a line.";
-			const string origin = "Origin of the line.";
-			_session.HandleUserEvent(null, new LineReadyEventArgs(line, origin, null));
-			
-			Assert.IsNotNull(userArgs);
-			Assert.IsInstanceOfType(typeof(LineReadyEventArgs), userArgs);
-			Assert.AreEqual(line, ((LineReadyEventArgs)userArgs).Line);
-			Assert.AreEqual(origin, ((LineReadyEventArgs)userArgs).OriginIdentifier);
+			LineReadyEventArgs args = new LineReadyEventArgs("A line.", "An origin.", null);
+			source.Raise(rc => rc.RaiseUserEvent += null, args);
+			sink.Verify(lc => lc.HandleUserEvent(_session, args), Times.Once());
 		}
 		
-		[Test, Category("HappyPath")]
-		public void WillPassThroughDisconnectEvent()
+		[Test]
+		public void WillPassThroughDisconnectEventAndRemoveSource()
 		{
-			MockResponseConsumer source = new MockResponseConsumer();
-
-			UserEventArgs userArgs = null;
-			_session.RaiseUserEvent += (sender, e) => { userArgs = (UserEventArgs) e; };
+			Mock<IResponseConsumer> source = HookUpMockSource();
+			Mock<ILineConsumer> sink = HookUpMockSink();
 			
-			const string origin = "Origin of the disconnect.";
-			_session.HandleUserEvent(source, new DisconnectEventArgs(origin));
+			DisconnectEventArgs args = new DisconnectEventArgs("An origin.");
+			source.Raise(rc => rc.RaiseUserEvent += null, args);
+			sink.Verify(lc => lc.HandleUserEvent(_session, args), Times.Once());
 			
-			Assert.IsNotNull(userArgs);
-			Assert.IsInstanceOfType(typeof(DisconnectEventArgs), userArgs);
-			Assert.AreEqual(origin, userArgs.OriginIdentifier);
-		}
-		
-		[Test, Category("HappyPath")]
-		public void WillRemoveSourceWhenProcessingDisconnectEvent()
-		{
-			MockResponseConsumer source = new MockResponseConsumer();
-
-			_session.AddSource(source);
-			Assert.Contains(new EventHandler<UserEventArgs>(_session.HandleUserEvent), source.UserEventHandlers);
-			
-			const string origin = "Origin of the disconnect.";
-			_session.HandleUserEvent(source, new DisconnectEventArgs(origin));
-			
-			//Source should have been removed when the disconnect message was handled.
-			Assert.IsEmpty(source.UserEventHandlers);
+			// Try to send events either way to verify we disconnected the source.
+			source.Raise(rc => rc.RaiseUserEvent += null, new LineReadyEventArgs("A line.", "An origin.", null));
+			sink.Verify(lc => lc.HandleUserEvent(It.IsAny<object>(), It.IsAny<LineReadyEventArgs>()), Times.Never());
+			sink.Raise(lc => lc.RaiseResponseEvent += null, new ResponseLineEventArgs("A line."));
+			source.Verify(rc => rc.HandleResponseEvent(It.IsAny<object>(), It.IsAny<ResponseLineEventArgs>()), Times.Never());
 		}
 	}
 }
