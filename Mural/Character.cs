@@ -20,8 +20,8 @@ namespace Mural
 		{
 			Character other = obj as Character;
 			return other != null &&
-				Name == other.Name &&
-				World == other.World;
+				Name.ToLower() == other.Name.ToLower() &&
+				World.ToLower() == other.World.ToLower();
 		}
 		
 		public override int GetHashCode ()
