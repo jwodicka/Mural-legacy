@@ -20,8 +20,8 @@ namespace Mural
 		{
 			Character other = obj as Character;
 			return other != null &&
-				Name == other.Name &&
-				World == other.World;
+				Name.ToLower() == other.Name.ToLower() &&
+				World.ToLower() == other.World.ToLower();
 		}
 		
 		public override int GetHashCode ()
@@ -29,7 +29,7 @@ namespace Mural
 			// This should take advantage of the distribution of the default
 			// string GetHashCode, and only be somewhat painful for efficiency.
 			// It could be better, but it's good enough for now.
-			return String.Format("{0}{1}", Name, World).GetHashCode();
+			return String.Format("{0}{1}", Name.ToLower(), World.ToLower()).GetHashCode();
 		}
 		
 		public bool CanBeAccessedByUser(string userName)
