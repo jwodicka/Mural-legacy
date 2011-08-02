@@ -1,14 +1,17 @@
 using System;
 using Mono.Data;
 using Mono.Data.Sqlite;
+using log4net;
 
 namespace Mural
 {
 	public class SQLiteAccountStore : AccountStore
 	{
+		private static readonly ILog _log = LogManager.GetLogger(typeof(SQLiteAccountStore));
+
 		public SQLiteAccountStore (string accountFilePath)
 		{
-			Console.WriteLine("Constructing SQLiteAccountStore");
+			_log.Debug("Constructing SQLiteAccountStore");
 			string connectionString = String.Format("Data Source={0},version=3", accountFilePath);
 			_connection = new SqliteConnection(connectionString);
 			_connection.Open();
@@ -24,8 +27,8 @@ namespace Mural
 				commandText = "select count(*) from Accounts";
 				using (SqliteCommand command = new SqliteCommand(commandText, _connection))
 				{
-					Console.WriteLine(String.Format("Initializing SQLiteAccountStore, {0} accounts known.",
-						command.ExecuteScalar()));
+					_log.DebugFormat("Initializing SQLiteAccountStore, {0} accounts known.",
+						command.ExecuteScalar());
 				}
 			}
 			finally
@@ -78,7 +81,7 @@ namespace Mural
 				{
 					command.Parameters.AddWithValue("@name", account.Name);
 					string queryResult = command.ExecuteScalar().ToString();
-					Console.WriteLine("Result: {0}", queryResult);
+					_log.DebugFormat("Result: {0}", queryResult);
 					numberOfAccounts = Int32.Parse(queryResult);
 				}
 				

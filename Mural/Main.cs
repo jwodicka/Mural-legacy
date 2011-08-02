@@ -1,15 +1,22 @@
 using System;
 using System.Net;
+using log4net;
+using log4net.Config;
 
 namespace Mural
 {
 	class MainClass
 	{
+		private static readonly ILog _log = LogManager.GetLogger(typeof(MainClass));
+		
 		public static void Main (string[] args)
 		{
 			// This method is currently proxying for the layer of the program that hooks up components to one another.
 			// Each module should be unaware of the others. This is the only module that needs to know the lay of the
 			// entire system.
+			
+			// Configure log4net based off the App.config
+			XmlConfigurator.Configure();
 			
 			// TODO: Replace the logic here that connects components with an IoC system.
 			// Probably use Ninject for this purpose: http://ninject.org/
@@ -35,8 +42,7 @@ namespace Mural
 			IPAddress ipAddress = ipHostInfo.AddressList[0];
 			int port = 8888;
 			
-			// TODO: Let's get a decent logger in here, shall we?
-			Console.WriteLine("Autodetected net configuration: {0} ({1})", localHostName, ipAddress.ToString());
+			_log.DebugFormat("Autodetected net configuration: {0} ({1})", localHostName, ipAddress.ToString());
 			
 			ILineConsumer defaultParser = new LoginParser(); //new RedirectingParser();
 			
@@ -46,7 +52,7 @@ namespace Mural
 			// Do we support connection-draining?
 			telnetListener.StartListenerLoop(); // This method doesn't return under normal circumstances.
 			
-			Console.WriteLine("Reached the end of the program.");
+			_log.Debug("Reached the end of the program.");
 		}
 	}
 }

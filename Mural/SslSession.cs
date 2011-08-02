@@ -3,11 +3,14 @@ using System.IO;
 using System.Net.Sockets;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using log4net;
 
 namespace Mural
 {
 	public class SslSession : TelnetSession
 	{
+		private static readonly ILog _log = LogManager.GetLogger(typeof(SslSession));
+
 		public SslSession (Socket sessionSocket)
 			: base(sessionSocket)
 		{
@@ -26,7 +29,7 @@ namespace Mural
 					_secureStream.AuthenticateAsClient("muck.furry.com", 
 						null, System.Security.Authentication.SslProtocols.Default, false);
 				} catch (Exception) {
-					Console.WriteLine("Exception authenticating:");
+					_log.Error("Exception authenticating:");
 					throw; // Rethrow preserving context!
 				}
 			}
@@ -44,14 +47,14 @@ namespace Mural
 	        if (sslPolicyErrors != SslPolicyErrors.None)
 	        {
 	 
-	            Console.WriteLine("IgnoreCertificateErrorsCallback: {0}", sslPolicyErrors);
+	            _log.DebugFormat("IgnoreCertificateErrorsCallback: {0}", sslPolicyErrors);
 	            //you should implement different logic here...
 	 
 	            if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateChainErrors) != 0)
 	            {
 	                foreach (X509ChainStatus chainStatus in chain.ChainStatus)
 	                {
-	                    Console.WriteLine("\t" + chainStatus.Status);
+	                    _log.Debug("\t" + chainStatus.Status);
 	                }
 	            }
 	        }
