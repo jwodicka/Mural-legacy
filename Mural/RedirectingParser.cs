@@ -1,8 +1,12 @@
 using System;
+using log4net;
+
 namespace Mural
 {
 	public class RedirectingParser : BasicLineConsumer
 	{
+		private static readonly ILog _log = LogManager.GetLogger(typeof(RedirectingParser));
+
 		public RedirectingParser ()
 		{
 		}
@@ -26,14 +30,14 @@ namespace Mural
 		
 		private void HandleLineReadyEvent(object sender, string line) 
 		{
-			Console.WriteLine("Redirector parsing: {0}", line);
+			_log.DebugFormat("Redirector parsing: {0}", line);
 			
 			string[] command = line.Split(' ');
 			
 			SynchronousSession session = sender as SynchronousSession;
 			if (session == null)
 			{
-				Console.Error.WriteLine("Got a LineReadyEvent from something that was not a SynchronousSession.");
+				_log.ErrorFormat("Got a LineReadyEvent from something that was not a SynchronousSession.");
 			}
 			else
 			{

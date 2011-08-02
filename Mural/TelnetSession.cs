@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.IO;
 using System.Collections.Generic;
+using log4net;
 
 namespace Mural
 {
@@ -18,6 +19,8 @@ namespace Mural
 	/// </summary>
 	public class TelnetSession : SynchronousSession
 	{
+		private static readonly ILog _log = LogManager.GetLogger(typeof(TelnetSession));
+
 		/// <summary>
 		/// Constructs a new TelnetSession that handles data coming in on the provided socket.
 		/// After constructing a TelnetSession, call BeginRecieve to start asynchronously recieving.
@@ -77,13 +80,13 @@ namespace Mural
 		
 		private void Disconnect(RequestDisconnectEventArgs args)
 		{
-			Console.WriteLine("{0} Recieved Disconnect Event", Identifier);
+			_log.DebugFormat("{0} Recieved Disconnect Event", Identifier);
 			if (DisconnectRequestApplies(args))
 			{
 				ConnectionStream.Close();
 				_sessionSocket.Disconnect(false); // You must disconnect the underlying socket explicitly.
 				
-				Console.WriteLine("Session {0} disconnected by server.", Identifier);
+				_log.DebugFormat("Session {0} disconnected by server.", Identifier);
 				OnRaiseDisconnectEvent(); // Inform the objects that are listening to this one that it no longer exists.				
 			}
 		}
@@ -117,7 +120,7 @@ namespace Mural
 			}
 			else
 			{
-				Console.WriteLine("Session disconnected by remote.");
+				_log.Debug("Session disconnected by remote.");
 				// Raise the disconnection event.
 				state.OnRaiseDisconnectEvent();
 				
@@ -146,7 +149,7 @@ namespace Mural
 				string completeLine = input.Substring(0, newlinePosition);
 				
 				// Raise an event that the input line is ready to be parsed.
-				Console.WriteLine("Input line: {0}", completeLine);
+				_log.DebugFormat("Input line: {0}", completeLine);
 				LineReadyEventArgs eventArgs = new LineReadyEventArgs(completeLine, this.Identifier, SendLineToUser);
 				OnRaiseLineReadyEvent(eventArgs);
 				

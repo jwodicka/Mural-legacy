@@ -1,10 +1,13 @@
 using System;
 using System.IO; // Referenced while we need to do path manipulation to get the DB location.
+using log4net;
 
 namespace Mural
 {
 	public class LoginParser : BasicLineConsumer
 	{
+		private static readonly ILog _log = LogManager.GetLogger(typeof(LoginParser));
+
 		public LoginParser ()
 		{
 		}
@@ -65,7 +68,7 @@ namespace Mural
 			case "con":
 			case "co":
 			case "c":
-				Console.WriteLine("Attempting to connect");
+				_log.Debug("Attempting to connect");
 				if (command.Length == 4)
 				{
 					string playerName = command[1].ToLower().Trim();

@@ -1,8 +1,12 @@
 using System;
+using log4net;
+
 namespace Mural
 {
 	public class EchoParser : BasicLineConsumer
 	{
+		private static readonly ILog _log = LogManager.GetLogger(typeof(EchoParser));
+
 		public EchoParser ()
 		{
 		}
@@ -27,12 +31,12 @@ namespace Mural
 		
 		private void HandleLineReadyEvent(object sender, string line) 
 		{
-			Console.WriteLine("Echoing: {0}", line);
+			_log.DebugFormat("Echoing: {0}", line);
 			
 			var session = sender as IResponseConsumer;
 			if (session == null)
 			{
-				Console.Error.WriteLine("Got a LineReadyEvent from something that was not an IResponseConsumer.");
+				_log.ErrorFormat("Got a LineReadyEvent from something that was not an IResponseConsumer.");
 			}
 			else
 			{

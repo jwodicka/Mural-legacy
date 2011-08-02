@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using log4net;
 
 namespace Mural
 {
 	public class TelnetPassthrough : WorldRouter
 	{
+		private static readonly ILog _log = LogManager.GetLogger(typeof(TelnetPassthrough));
+
 		public TelnetPassthrough(string remoteHostName, int remotePort)
 		{
 			_remoteHostName = remoteHostName;
@@ -232,10 +235,10 @@ namespace Mural
 		
 		private void DisconnectRemote()
 		{
-			Console.WriteLine("Disconnecting remote.");
+			_log.Debug("Disconnecting remote.");
 			if (_outboundSession != null)
 			{
-				Console.WriteLine("Outbound session is present; disconnecting it.");
+				_log.Debug("Outbound session is present; disconnecting it.");
 				MyOutboundSessionLineConsumer.RequestDisconnect();
 				MyOutboundSessionLineConsumer.RemoveSource(_outboundSession);
 				_outboundSession = null;
