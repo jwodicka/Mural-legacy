@@ -42,6 +42,8 @@
     <Compile Include="AccountSessionTest.cs" />
     <Compile Include="MultiplexSessionTest.cs" />
     <Compile Include="TestExtensions.cs" />
+    <Compile Include="CharacterSessionTest.cs" />
+    <Compile Include="CharacterTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
