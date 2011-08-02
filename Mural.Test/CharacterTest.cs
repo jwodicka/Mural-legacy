@@ -88,10 +88,25 @@ namespace Mural.Test
 			Assert.AreEqual(TestCharacter1.GetHashCode(), TestCharacter2.GetHashCode());
 		}
 		
+		[Test]
+		public void HashCodesAreCharacterNameCaseInsensitive() {
+			Character TestCharacter1 = new Character("Name", "World");
+			Character TestCharacter2 = new Character("name", "World");
+			
+			Assert.AreEqual(TestCharacter1.GetHashCode(), TestCharacter2.GetHashCode());
+		}
+		
+		[Test]
+		public void HashCodesAreCharacterWorldInsensitive() {
+			Character TestCharacter1 = new Character("Name", "World");
+			Character TestCharacter2 = new Character("Name", "world");
+			Assert.AreEqual(TestCharacter1.GetHashCode(), TestCharacter2.GetHashCode());
+		}
+		
+		[Test]
 		public void DifferentCharactersHaveDifferentHashCodes() {
 			Character TestCharacter1 = new Character("Name1", "World");
 			Character TestCharacter2 = new Character("Name2", "World");
-			Assert.IsFalse(TestCharacter1.Equals(TestCharacter2));
 			Assert.AreNotEqual(TestCharacter1, TestCharacter2);
 			Assert.AreNotEqual(TestCharacter1.GetHashCode(), TestCharacter2.GetHashCode());
 		}
