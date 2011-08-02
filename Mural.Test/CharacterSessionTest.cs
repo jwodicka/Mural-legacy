@@ -13,7 +13,7 @@ namespace Mural.Test
 			Character TestCharacter = new Character("Name", "World");
 			CharacterSession TestCharacterSession = new CharacterSession(TestCharacter);
 			
-			Assert.IsTrue(TestCharacterSession.CharacterIdentity.Equals(TestCharacter));
+			Assert.AreEqual(TestCharacterSession.CharacterIdentity, TestCharacter);
 		}
 		
 	}
