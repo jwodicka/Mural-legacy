@@ -24,14 +24,14 @@ namespace Mural
 		{
 			return ((HostElement)element).Name;
 		}
-		// TODO: Uncomment this once we're done debugging.
-/*  	new public HostElement this [String name]
+		
+		new public HostElement this [String name]
 		{
 			get {
 				return (HostElement)BaseGet(name);
 			}
 		}
-		*/
+		
 	}
 }
 

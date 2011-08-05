@@ -83,6 +83,7 @@
     <Compile Include="PortElementCollection.cs" />
     <Compile Include="PortElement.cs" />
     <Compile Include="PortConfigurationSection.cs" />
+    <Compile Include="ListenerConfiguration.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
