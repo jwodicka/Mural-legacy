@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using log4net;
 using log4net.Config;
+using System.Configuration;
 
 namespace Mural
 {
@@ -23,6 +24,9 @@ namespace Mural
 			
 			// TODO: Figure out how Mural actually becomes aware of the IP addresses it serves,
 			// and the ports it should listen on. Perhaps the standard .NET .config XML files?
+						
+			// TODO: This will cause a ConfigurationException for a duplicate host or port number. Catch and log!
+			PortConfigurationSection PortConfig = (PortConfigurationSection)System.Configuration.ConfigurationManager.GetSection("hosts");				
 			
 			// This whole next bit is hackish: It gets an IP address (probably!) that _should_ work for this machine.
 			// No promises are made that it does or it will. It is certain to fail miserably on machines that host
