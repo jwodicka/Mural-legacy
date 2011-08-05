@@ -6,6 +6,7 @@ namespace Mural
 	// The ConfigurationSection corresponds to a blob of XML in the App.config.
 	// It is registered in the configsections, and used to parse that part of the XML.
 	// PortConfigurationSection is what we use to store the hostnames and ports being used by Mural.
+	// TODO: Set up the config system to be writable for a web-based configuration tool.
 	public class PortConfigurationSection : ConfigurationSection
 	{
 		// So, ConfigurationProperty is a decorator to indicate some property of this XML element.
@@ -21,7 +22,6 @@ namespace Mural
 			{
 				return (HostElementCollection)this[""];
 			}
-			// TODO: write a setter for automated config.
 		}
 	}
 }

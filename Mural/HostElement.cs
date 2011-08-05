@@ -33,14 +33,6 @@ namespace Mural
 				return (PortElementCollection)this[""];
 			}
 		}
-		
-		// TODO: Uncomment this once we're done debugging.
-/*		public PortElement this [int number]
-		{
-			get {
-				return (PortElement)BaseGet(number);
-			}
-		} */
 	}
 
 }
