@@ -27,7 +27,8 @@ namespace Mural
 		//   SSH
 		//   ...Jabber? SMTP? etc.
 		// For now, it's just a string.
-		[ConfigurationProperty("type")]
+		// If we don't have a type listed, we assume telnet.
+		[ConfigurationProperty("type", DefaultValue = "telnet")]
 		public String Type
 		{
 			get
