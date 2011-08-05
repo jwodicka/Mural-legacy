@@ -24,10 +24,18 @@ namespace Mural
 			
 			// TODO: Figure out how Mural actually becomes aware of the IP addresses it serves,
 			// and the ports it should listen on. Perhaps the standard .NET .config XML files?
-						
-			// TODO: This will cause a ConfigurationException for a duplicate host or port number. Catch and log!
-			PortConfigurationSection PortConfig = (PortConfigurationSection)System.Configuration.ConfigurationManager.GetSection("hosts");				
 			
+			// Pull values for Port Configuration as defined in App.config
+			try {
+				PortConfigurationSection PortConfig = (PortConfigurationSection)ConfigurationManager.GetSection("hosts");
+			} catch(ConfigurationException e) {
+				// This will cause a ConfigurationException for a duplicate host or port number.
+				// There may be other error conditions that cause ConfigurationExceptions.
+				// Regardless, if we can't read our configuration, we are sad and confused pandas.
+				// Log as an error, then exit.
+				_log.ErrorFormat(e.Message);
+				Environment.Exit(1);
+			}
 			// This whole next bit is hackish: It gets an IP address (probably!) that _should_ work for this machine.
 			// No promises are made that it does or it will. It is certain to fail miserably on machines that host
 			//  multiple domains, or have multiple IP addresses, or are behind load balancers, or are interesting in any
