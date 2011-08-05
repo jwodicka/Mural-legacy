@@ -2,6 +2,8 @@ using System;
 using System.Net;
 using log4net;
 using log4net.Config;
+using Ninject;
+using Ninject.Modules;
 
 namespace Mural
 {
@@ -17,9 +19,6 @@ namespace Mural
 			
 			// Configure log4net based off the App.config
 			XmlConfigurator.Configure();
-			
-			// TODO: Replace the logic here that connects components with an IoC system.
-			// Probably use Ninject for this purpose: http://ninject.org/
 			
 			// TODO: Figure out how Mural actually becomes aware of the IP addresses it serves,
 			// and the ports it should listen on. Perhaps the standard .NET .config XML files?
@@ -44,13 +43,14 @@ namespace Mural
 			
 			_log.DebugFormat("Autodetected net configuration: {0} ({1})", localHostName, ipAddress.ToString());
 			
-			ILineConsumer defaultParser = new LoginParser(); //new RedirectingParser();
+			IKernel kernel = new StandardKernel(new MuralModule());
 			
-			TelnetListener telnetListener = new TelnetListener(defaultParser, ipAddress, port);
+			TelnetListener telnetListener = kernel.Get<TelnetListener>();
+			
 			// TODO: What does it look like to end the program politely? 
 			// Who handles that, and how do we terminate the listener loops?
 			// Do we support connection-draining?
-			telnetListener.StartListenerLoop(); // This method doesn't return under normal circumstances.
+			telnetListener.StartListenerLoop(ipAddress, port); // This method doesn't return under normal circumstances.
 			
 			_log.Debug("Reached the end of the program.");
 		}

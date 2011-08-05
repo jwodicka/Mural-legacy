@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using log4net;
+using Ninject;
 
 namespace Mural
 {
@@ -10,18 +11,17 @@ namespace Mural
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(TelnetListener));
 		
-		public TelnetListener(ILineConsumer defaultParser, IPAddress ipAddress, int port)
+		[Inject]
+		public TelnetListener(ILineConsumer defaultParser)
 		{
 			this._defaultParser = defaultParser;
-			this._ipAddress = ipAddress;
-			this._port = port;
 		}
 		
-		public void StartListenerLoop()
+		public void StartListenerLoop(IPAddress ipAddress, int port)
 		{
 			// For now, this is based on the MSDN sample at: http://msdn.microsoft.com/en-us/library/5w7b7x5f.aspx
 			
-			IPEndPoint localEndPoint = new IPEndPoint(_ipAddress, _port); 
+			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port); 
 			
 			int backlogSize = 10; // The maximum number of connections that can be pending while the socket is listening.
 			// In normal MU*-style usage, this backlog should never get very large; MU* servers generally rely on a relatively
@@ -76,9 +76,6 @@ namespace Mural
 					
 		private ManualResetEvent _synchronizer = new ManualResetEvent(false);
 		private ILineConsumer _defaultParser;
-		
-		private IPAddress _ipAddress;
-		private int _port;
 	}
 }
 

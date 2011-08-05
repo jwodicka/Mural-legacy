@@ -1,14 +1,18 @@
 using System;
 using log4net;
+using Ninject;
 
 namespace Mural
 {
 	public class RedirectingParser : BasicLineConsumer
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(RedirectingParser));
-
-		public RedirectingParser ()
+		
+		[Inject]
+		public RedirectingParser (EchoParser echoParser, LoginParser loginParser)
 		{
+			_echoParser = echoParser;
+			_loginParser = loginParser;
 		}
 		
 		public override void HandleUserEvent(object sender, UserEventArgs args) 
@@ -51,13 +55,13 @@ namespace Mural
 				{
 				case "echo":
 					SendLineToUser("Switching to echo mode!");	
-					RedirectToParser(session, ReusableEchoParser);
+					RedirectToParser(session, _echoParser);
 					break;
 				case "login":
 					if (account == null)
 					{
 						SendLineToUser("Switching to login mode!");	
-						RedirectToParser(session, ReusableLoginParser);
+						RedirectToParser(session, _loginParser);
 					}
 					else
 					{
@@ -111,30 +115,6 @@ namespace Mural
 			// Add the new parser, then remove this session as a source
 			parser.AddSource(session);
 			this.RemoveSource(session);
-		}
-		
-		// TODO: The construction here should be replaced by an IoC construct for better testability. Ninject, perhaps?
-		EchoParser ReusableEchoParser
-		{
-			get
-			{
-				if (_echoParser == null)
-				{
-					_echoParser = new EchoParser();	
-				}
-				return _echoParser;
-			}
-		}
-		LoginParser ReusableLoginParser
-		{
-			get
-			{
-				if (_loginParser == null)
-				{
-					_loginParser = new LoginParser();	
-				}
-				return _loginParser;
-			}
 		}
 		
 		private EchoParser _echoParser;
