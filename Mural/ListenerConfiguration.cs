@@ -4,14 +4,23 @@ namespace Mural
 {
 	public class ListenerConfiguration
 	{
-		// TODO: Getter/Setter, validation.
-		public String host;
+		public String Host
+		{
+			get;
+			private set;
+		}
 		
-		// TODO: Getter/Setter, validation.
-		public int port;
+		public int Port
+		{
+			get;
+			private set;
+		}
 		
-		// TODO: Getter/Setter, validation.
-		public String type;
+		public String Type
+		{
+			get;
+			private set;
+		}
 			
 		public ListenerConfiguration ()
 		{
@@ -20,9 +29,9 @@ namespace Mural
 		
 		public ListenerConfiguration (String host, int port, String type)
 		{
-			this.host = host;
-			this.port = port;
-			this.type = type;
+			this.Host = host;
+			this.Port = port;
+			this.Type = type;
 		}
 	}
 }

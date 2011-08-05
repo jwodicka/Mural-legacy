@@ -73,7 +73,7 @@ namespace Mural
 			// Right now, this foreach is abusing the fact that the StartListenerLoop on a TelnetListener doesn't return.
 			// It will keep trying until it finds one of type telnet, then pause there. Forever.
 			foreach(ListenerConfiguration config in connectionList) {
-				IPHostEntry ipHostInfo = Dns.GetHostEntry(config.host);
+				IPHostEntry ipHostInfo = Dns.GetHostEntry(config.Host);
 				
 				// Gets the IP Address associated with the host given.
 				// Assuming that it was an actual IP Address, there should only be one.
@@ -82,14 +82,14 @@ namespace Mural
 				IPAddress ipAddress = ipHostInfo.AddressList[0];
 				
 				_log.DebugFormat("Using net configuration: {0}:{1} ({2}). Listener type: {3}", 
-					config.host, config.port, ipAddress.ToString(), config.type);
+					config.Host, config.Port, ipAddress.ToString(), config.Type);
 				
 				ILineConsumer defaultParser = new LoginParser(); //new RedirectingParser();
 				
 				// TODO: Make connection type an enum so this can be a switch statement.
 				// Or, possibly, a different refactor as part of making this support multiple listeners.
-				if(((String)config.type).Equals("telnet")) {
-					TelnetListener telnetListener = new TelnetListener(defaultParser, ipAddress, config.port);
+				if(((String)config.Type).Equals("telnet")) {
+					TelnetListener telnetListener = new TelnetListener(defaultParser, ipAddress, config.Port);
 					// TODO: What does it look like to end the program politely? 
 					// Who handles that, and how do we terminate the listener loops?
 					// Do we support connection-draining?
