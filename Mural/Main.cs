@@ -48,20 +48,8 @@ namespace Mural
 				// There was nothing in the XML for connections!
 				// TODO: A fancy configuration step.
 				
-				// If there was nothing at all, we're defaulting to a hackish way of getting something, anything.
-				// We do this by making a ListenerConfiguration for localhost on port 8888, and then proceeding normally.
-				// In a simply case, this should work. HOWEVER!
-				// Using these parameters will get an IP address (probably!) that _should_ work for this machine.
-				// No promises are made that it does or it will. It is certain to fail miserably on machines that host
-				//  multiple domains, or have multiple IP addresses, or are behind load balancers, or are interesting in any
-				//  of a number of other ways. It has fascinating issues on WinBoxen with IPv6 installed.
-				// Failure is highly possible; we may want to simply exit if we encounter this condition,
-				//  or have more elaborate code in place to handle it.
-				// This is, however, a form of defaulting to let simple users get it mostly-right when they try to 
-				//  run Mural on their local boxen
-				// Serious installers of Mural can set it all up in config and have it work.
-	
-				connectionList.Add(new ListenerConfiguration("localhost", 8888, "telnet"));
+				_log.Warn("No configuration provided! Please provide one in App.config");
+				Environment.Exit(0);
 			}
 			
 			
@@ -88,12 +76,18 @@ namespace Mural
 				
 				// TODO: Make connection type an enum so this can be a switch statement.
 				// Or, possibly, a different refactor as part of making this support multiple listeners.
-				if(((String)config.Type).Equals("telnet")) {
+				switch(config.Type) 
+				{
+				case "telnet" :
 					TelnetListener telnetListener = new TelnetListener(defaultParser, ipAddress, config.Port);
 					// TODO: What does it look like to end the program politely? 
 					// Who handles that, and how do we terminate the listener loops?
 					// Do we support connection-draining?
 					telnetListener.StartListenerLoop(); // This method doesn't return under normal circumstances.
+					break;
+				default:
+					_log.Warn(String.Format("No listener of type {0}.", config.Type));
+					break;
 				}
 			}
 			
