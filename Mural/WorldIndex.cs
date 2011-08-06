@@ -53,6 +53,7 @@ namespace Mural
 		
 		protected WorldList LocalWorldList
 		{
+			// TODO: This wants to get pulled into the IoC refactor!
 			get
 			{
 				if (_worldList == null)
