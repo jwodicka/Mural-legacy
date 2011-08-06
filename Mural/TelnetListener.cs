@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using log4net;
 
 namespace Mural
@@ -16,7 +15,7 @@ namespace Mural
 			this._ipAddress = ipAddress;
 			this._port = port;
 		}
-		
+				
 		public void StartListenerLoop()
 		{
 			// For now, this is based on the MSDN sample at: http://msdn.microsoft.com/en-us/library/5w7b7x5f.aspx
@@ -36,28 +35,19 @@ namespace Mural
 				listener.Bind(localEndPoint);
 				listener.Listen(backlogSize);
 				
-				while(true) {
-					_synchronizer.Reset();
-					
-					_log.Debug("Waiting to accept connection.");
+				_log.Debug("Waiting to accept connection.");
 					listener.BeginAccept(
 						new AsyncCallback(this.acceptCallback), 
 					    listener);
-					
-					_synchronizer.WaitOne();
-				}
 				
 			} catch ( Exception e ) {
 				// This error-handling is not ready for prime-time.
 				_log.Error(e.ToString());
 			}
-			_log.Debug("Shutting down.");
 		}
 		
 		private void acceptCallback(IAsyncResult asyncResult)
 		{
-			_synchronizer.Set();
-			
 			Socket listener = (Socket) asyncResult.AsyncState;
 			Socket handler = listener.EndAccept(asyncResult);
 			// At this point, we have "handler", which is a socket connected to the end user.
@@ -72,9 +62,14 @@ namespace Mural
 			
 			// Start the TelnetSession running.
 			session.BeginRecieve();
+			
+			// Enqueue an additional asynchronous accept.
+			_log.Debug("Waiting to accept connection.");
+			listener.BeginAccept(
+				new AsyncCallback(this.acceptCallback), 
+			    listener);
 		}
 					
-		private ManualResetEvent _synchronizer = new ManualResetEvent(false);
 		private ILineConsumer _defaultParser;
 		
 		private IPAddress _ipAddress;
