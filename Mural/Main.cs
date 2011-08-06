@@ -3,6 +3,7 @@ using System.Net;
 using log4net;
 using log4net.Config;
 using System.Configuration;
+using System.Collections.Generic;
 
 namespace Mural
 {
@@ -22,36 +23,8 @@ namespace Mural
 			// TODO: Replace the logic here that connects components with an IoC system.
 			// Probably use Ninject for this purpose: http://ninject.org/
 			
-			// This is a list, to be populated with all the host/ports we know about.
-			// Is ArrayList the right type here?
-			System.Collections.ArrayList connectionList = new System.Collections.ArrayList();
-			try {
-				// Pull values for Port Configuration as defined in App.config
-				PortConfigurationSection PortConfig = (PortConfigurationSection)ConfigurationManager.GetSection("hosts");
-				
-				foreach(HostElement host in PortConfig.HostCollection) {
-					foreach(PortElement port in host.PortCollection) {
-						// ListenerConfiguration is essentially a struct with name, number, and type.
-						connectionList.Add(new ListenerConfiguration(host.Name, port.Number, port.Type));
-					}
-				}
-			} catch(ConfigurationException e) {
-				// This will cause a ConfigurationException for a duplicate host or port number.
-				// There may be other error conditions that cause ConfigurationExceptions.
-				// Regardless, if we can't read our configuration, we are sad and confused pandas.
-				// Log as an error, then exit.
-				_log.ErrorFormat(e.Message);
-				Environment.Exit(1);
-			}
-			
-			if(connectionList.Count == 0) {
-				// There was nothing in the XML for connections!
-				// TODO: A fancy configuration step.
-				
-				_log.Warn("No configuration provided! Please provide one in App.config");
-				Environment.Exit(0);
-			}
-			
+			// This gets a list populated by ReadPortConfiguration with all the host/ports we know about from the config file.
+			List<ListenerConfiguration> connectionList = ReadPortConfiguration();
 			
 			// We currently do not have the architecture in place to launch multiple listeners.
 			// Therefore, we are going to use whatever the first item in the connectionList.
@@ -83,7 +56,12 @@ namespace Mural
 					// TODO: What does it look like to end the program politely? 
 					// Who handles that, and how do we terminate the listener loops?
 					// Do we support connection-draining?
-					telnetListener.StartListenerLoop(); // This method doesn't return under normal circumstances.
+					try {
+						telnetListener.StartListenerLoop(); // This method doesn't return under normal circumstances.
+					} catch(System.Net.Sockets.SocketException e) {
+						_log.Error(e.Message);
+					}
+					break;
 					break;
 				default:
 					_log.Warn(String.Format("No listener of type {0}.", config.Type));
@@ -92,6 +70,38 @@ namespace Mural
 			}
 			
 			_log.Debug("Reached the end of the program.");
+		}
+
+		public List<ListenerConfiguration> ReadPortConfiguration ()
+		{
+			List<ListenerConfiguration> connectionList = new List<ListenerConfiguration>();
+			try {
+				// Pull values for Port Configuration as defined in App.config
+				PortConfigurationSection PortConfig = (PortConfigurationSection)ConfigurationManager.GetSection("hosts");
+				
+				foreach(HostElement host in PortConfig.HostCollection) {
+					foreach(PortElement port in host.PortCollection) {
+						// ListenerConfiguration is essentially a struct with name, number, and type.
+						connectionList.Add(new ListenerConfiguration(host.Name, port.Number, port.Type));
+					}
+				}
+			} catch(ConfigurationException e) {
+				// This will cause a ConfigurationException for a duplicate host or port number.
+				// There may be other error conditions that cause ConfigurationExceptions.
+				// Regardless, if we can't read our configuration, we are sad and confused pandas.
+				// Log as an error, then exit.
+				_log.ErrorFormat(e.Message);
+				Environment.Exit(1);
+			}
+			
+			if(connectionList.Count == 0) {
+				// There was nothing in the XML for connections!
+				// TODO: A fancy configuration step.
+				
+				_log.Warn("No configuration provided! Please provide one in App.config");
+				Environment.Exit(0);
+			}
+			return connectionList;
 		}
 	}
 }
