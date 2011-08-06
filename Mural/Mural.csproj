@@ -86,6 +86,7 @@
     <Compile Include="ListenerConfiguration.cs" />
     <Compile Include="ServerAddress.cs" />
     <Compile Include="HardcodedWorldList.cs" />
+    <Compile Include="SQLiteWorldList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
