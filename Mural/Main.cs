@@ -4,36 +4,35 @@ using log4net;
 using log4net.Config;
 using System.Configuration;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Mural
 {
 	class MainClass
 	{
-		private static readonly ILog _log = LogManager.GetLogger(typeof(MainClass));
-		
-		public static void Main (string[] args)
+		public static void Main(string[] args)
 		{
 			// This method is currently proxying for the layer of the program that hooks up components to one another.
 			// Each module should be unaware of the others. This is the only module that needs to know the lay of the
 			// entire system.
 			
+			// TODO: Replace the logic here that connects components with an IoC system.
+			// Probably use Ninject for this purpose: http://ninject.org/
+			
 			// Configure log4net based off the App.config
 			XmlConfigurator.Configure();
 			
-			// TODO: Replace the logic here that connects components with an IoC system.
-			// Probably use Ninject for this purpose: http://ninject.org/
+			ILineConsumer defaultParser = new LoginParser();
 			
 			// This gets a list populated by ReadPortConfiguration with all the host/ports we know about from the config file.
 			List<ListenerConfiguration> connectionList = ReadPortConfiguration();
 			
-			// We currently do not have the architecture in place to launch multiple listeners.
-			// Therefore, we are going to use whatever the first item in the connectionList.
-			// TODO: Support multiple listeners.
-			// Once we have the architectural support for multiple listeners, we'll want to iterate 
-			//  through the connectionList and set them all up.
-			// Right now, this foreach is abusing the fact that the StartListenerLoop on a TelnetListener doesn't return.
-			// It will keep trying until it finds one of type telnet, then pause there. Forever.
-			foreach(ListenerConfiguration config in connectionList) {
+			// Assume we failed to set up a listener unless we observe otherwise.
+			bool listenerOn = false;
+			
+			// For each endpoint, attempt to set it up.
+			foreach(ListenerConfiguration config in connectionList) 
+			{
 				IPHostEntry ipHostInfo = Dns.GetHostEntry(config.Host);
 				
 				// Gets the IP Address associated with the host given.
@@ -44,20 +43,16 @@ namespace Mural
 				
 				_log.DebugFormat("Using net configuration: {0}:{1} ({2}). Listener type: {3}", 
 					config.Host, config.Port, ipAddress.ToString(), config.Type);
-				
-				ILineConsumer defaultParser = new LoginParser(); //new RedirectingParser();
-				
+								
 				// TODO: Make connection type an enum so this can be a switch statement.
 				// Or, possibly, a different refactor as part of making this support multiple listeners.
 				switch(config.Type) 
 				{
 				case "telnet" :
 					TelnetListener telnetListener = new TelnetListener(defaultParser, ipAddress, config.Port);
-					// TODO: What does it look like to end the program politely? 
-					// Who handles that, and how do we terminate the listener loops?
-					// Do we support connection-draining?
 					try {
-						telnetListener.StartListenerLoop(); // This method doesn't return under normal circumstances.
+						telnetListener.StartListenerLoop();
+						listenerOn = true;
 					} catch(System.Net.Sockets.SocketException e) {
 						_log.Error(e.Message);
 					}
@@ -68,10 +63,18 @@ namespace Mural
 				}
 			}
 			
+			// If we actually managed to set up at least one listener:
+			if (listenerOn)
+			{
+				// Wait for someone to call _endProgram.Set(). Block until that happens.
+				_endProgram.Reset();
+				_endProgram.WaitOne();
+			}
+			
 			_log.Debug("Reached the end of the program.");
 		}
 
-		private static List<ListenerConfiguration> ReadPortConfiguration ()
+		private static List<ListenerConfiguration> ReadPortConfiguration()
 		{
 			List<ListenerConfiguration> connectionList = new List<ListenerConfiguration>();
 			try {
@@ -102,6 +105,10 @@ namespace Mural
 			}
 			return connectionList;
 		}
+		
+		private static ManualResetEvent _endProgram = new ManualResetEvent(false);
+		
+		private static readonly ILog _log = LogManager.GetLogger(typeof(MainClass));
 	}
 }
 
