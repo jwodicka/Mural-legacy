@@ -62,7 +62,6 @@ namespace Mural
 						_log.Error(e.Message);
 					}
 					break;
-					break;
 				default:
 					_log.Warn(String.Format("No listener of type {0}.", config.Type));
 					break;
@@ -72,7 +71,7 @@ namespace Mural
 			_log.Debug("Reached the end of the program.");
 		}
 
-		public List<ListenerConfiguration> ReadPortConfiguration ()
+		private static List<ListenerConfiguration> ReadPortConfiguration ()
 		{
 			List<ListenerConfiguration> connectionList = new List<ListenerConfiguration>();
 			try {
