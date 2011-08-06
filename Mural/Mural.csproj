@@ -84,6 +84,8 @@
     <Compile Include="PortElement.cs" />
     <Compile Include="PortConfigurationSection.cs" />
     <Compile Include="ListenerConfiguration.cs" />
+    <Compile Include="ServerAddress.cs" />
+    <Compile Include="HardcodedWorldList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
