@@ -23,6 +23,7 @@ namespace Mural
 			XmlConfigurator.Configure();
 			
 			ILineConsumer defaultParser = new LoginParser();
+			ISystemMessageProvider messageProvider = new HardcodedSystemMessageProvider();
 			
 			// This gets a list populated by ReadPortConfiguration with all the host/ports we know about from the config file.
 			List<ListenerConfiguration> connectionList = ReadPortConfiguration();
@@ -49,7 +50,8 @@ namespace Mural
 				switch(config.Type) 
 				{
 				case "telnet" :
-					TelnetListener telnetListener = new TelnetListener(defaultParser, ipAddress, config.Port);
+					TelnetListener telnetListener = 
+						new TelnetListener(defaultParser, messageProvider, ipAddress, config.Port);
 					try {
 						telnetListener.StartListenerLoop();
 						listenerOn = true;

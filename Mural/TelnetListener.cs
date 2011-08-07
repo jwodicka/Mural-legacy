@@ -9,9 +9,14 @@ namespace Mural
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(TelnetListener));
 		
-		public TelnetListener(ILineConsumer defaultParser, IPAddress ipAddress, int port)
+		public TelnetListener(
+			ILineConsumer defaultParser, 
+			ISystemMessageProvider systemMessageProvider, 
+			IPAddress ipAddress, 
+			int port)
 		{
 			this._defaultParser = defaultParser;
+			this._systemMessageProvider = systemMessageProvider;
 			this._ipAddress = ipAddress;
 			this._port = port;
 		}
@@ -63,6 +68,15 @@ namespace Mural
 			// Start the TelnetSession running.
 			session.BeginRecieve();
 			
+			// Get the login message and transmit it to the user.
+			foreach(string line in _systemMessageProvider.GetMessage("login", "terminal.telnet.plaintext"))
+			{
+				// Rather than hook up an event to this listener, 
+				// raise the event once per line, then unhook the event,
+				// we are directly invoking the event handler.
+				session.HandleResponseEvent(this, new ResponseLineEventArgs(line));
+			}
+			
 			// Enqueue an additional asynchronous accept.
 			_log.Debug("Waiting to accept connection.");
 			listener.BeginAccept(
@@ -71,6 +85,7 @@ namespace Mural
 		}
 					
 		private ILineConsumer _defaultParser;
+		private ISystemMessageProvider _systemMessageProvider;
 		
 		private IPAddress _ipAddress;
 		private int _port;
