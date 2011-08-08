@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Mural
 {
 	// Needs to work no matter how many copies are instantiated. 
-	public class CharacterOwnershipIndex
+	public class CharacterOwnershipIndex : ICharacterOwnership
 	{
 		public CharacterOwnershipIndex ()
 		{

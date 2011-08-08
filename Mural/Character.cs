@@ -1,4 +1,5 @@
 using System;
+
 namespace Mural
 {
 	/// <summary>
@@ -37,7 +38,8 @@ namespace Mural
 			// This is a quick naive implementation. We probably want to actually persist the
 			// ownership index longer.
 			// TODO: Replace this with an IoC construct.
-			CharacterOwnershipIndex ownershipIndex = new CharacterOwnershipIndex();
+			string defaultCharacterFile = System.IO.Path.Combine("DefaultDB", "character.db");
+			ICharacterOwnership ownershipIndex = new SQLiteCharacterOwnership(defaultCharacterFile);
 			return ownershipIndex.DoesUserOwnCharacter(userName, Name, World);	
 		}
 		

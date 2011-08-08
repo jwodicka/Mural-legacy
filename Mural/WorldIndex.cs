@@ -58,7 +58,8 @@ namespace Mural
 			{
 				if (_worldList == null)
 				{
-					_worldList = new HardcodedWorldList();	
+					string defaultWorldFile = System.IO.Path.Combine("DefaultDB", "world.db");
+					_worldList = new SQLiteWorldList(defaultWorldFile);	
 				}
 				return _worldList;
 			}

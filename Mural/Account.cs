@@ -37,7 +37,8 @@ namespace Mural
 		{
 			// This is a quick naive implementation. We probably want to actually persist the
 			// ownership index longer.
-			CharacterOwnershipIndex ownershipIndex = new CharacterOwnershipIndex();
+			string defaultCharacterFile = System.IO.Path.Combine("DefaultDB", "character.db");
+			ICharacterOwnership ownershipIndex = new SQLiteCharacterOwnership(defaultCharacterFile);
 			return ownershipIndex.DoesUserOwnCharacter(this.Name, characterName, worldName);
 		}
 		

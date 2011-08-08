@@ -89,10 +89,20 @@
     <Compile Include="SQLiteWorldList.cs" />
     <Compile Include="ISystemMessageProvider.cs" />
     <Compile Include="HardcodedSystemMessageProvider.cs" />
+    <Compile Include="ICharacterOwnership.cs" />
+    <Compile Include="SQLiteCharacterOwnership.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="DefaultDB\account.db" />
+    <None Include="DefaultDB\account.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="App.config" />
+    <None Include="DefaultDB\character.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="DefaultDB\world.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
