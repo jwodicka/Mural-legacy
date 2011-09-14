@@ -14,7 +14,8 @@ namespace Mural.Test
 		[SetUp]
 		public void SetUpTestObjects()
 		{
-			_account = new Account();
+			Mock<ICharacterOwnershipIndex> index = new Mock<ICharacterOwnershipIndex>();
+			_account = new Account(null, null, index.Object);
 			_session = new AccountSession(_account);
 		}
 		

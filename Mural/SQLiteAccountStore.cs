@@ -37,7 +37,7 @@ namespace Mural
 			}
 		}
 		
-		public override Account GetAccount (string name, string password)
+		public override Account GetAccount (string name, string password, AccountFactory factory)
 		{
 			string commandText = "select Name from Accounts where Name=@name and Password=@password";
 			
@@ -52,9 +52,7 @@ namespace Mural
 					{
 						if (reader.Read())
 						{
-							Account account = new Account();
-							account.Name = reader.GetString(0);
-							return account;
+							return factory.GetAccount(reader.GetString(0));
 						}
 						else
 						{

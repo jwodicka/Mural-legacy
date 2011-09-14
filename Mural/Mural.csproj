@@ -70,7 +70,6 @@
     <Compile Include="SessionBuffer.cs" />
     <Compile Include="SslSession.cs" />
     <Compile Include="WorldRouter.cs" />
-    <Compile Include="CharacterOwnershipIndex.cs" />
     <Compile Include="World.cs" />
     <Compile Include="WorldList.cs" />
     <Compile Include="RemoteSSLWorld.cs" />
@@ -82,10 +81,17 @@
     <Compile Include="ResponseLineEventArgs.cs" />
     <Compile Include="BasicLineConsumer.cs" />
     <Compile Include="MuralModule.cs" />
+    <Compile Include="CharacterFactory.cs" />
+    <Compile Include="AccountFactory.cs" />
+    <Compile Include="ICharacterOwnershipIndex.cs" />
+    <Compile Include="ServerAddress.cs" />
+    <Compile Include="HardcodedCharacterOwnershipIndex.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="DefaultDB\account.db" />
+    <None Include="DefaultDB\account.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>

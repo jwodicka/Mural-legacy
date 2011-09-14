@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.IO;
 using log4net;
 using log4net.Config;
 using Ninject;
@@ -32,20 +33,25 @@ namespace Mural
 			// Replace this with a combination of defaulting as elegantly as possible to let simple users get it
 			//  mostly-right when they try to run Mural on their local boxen, and reading from config files so that
 			//  serious installers of Mural can set it all up in config and have it work.
-			String localHostName = Dns.GetHostName();
 			
-			localHostName = "localhost";
+			// TODO: Support binding on different addresses, configurable?
+			//string localHostName = Dns.GetHostName();
+			string localHostName = "localhost";
 			
 			IPHostEntry ipHostInfo = Dns.GetHostEntry(localHostName);
+			
 			// Gets the first IP Address associated with this machine.
 			IPAddress ipAddress = ipHostInfo.AddressList[0];
 			int port = 8888;
 			
 			_log.DebugFormat("Autodetected net configuration: {0} ({1})", localHostName, ipAddress.ToString());
 			
-			IKernel kernel = new StandardKernel(new MuralModule());
-			
-			TelnetListener telnetListener = kernel.Get<TelnetListener>();
+			// TODO: Should we have a way of configuring which default ILineConsumer is used to initialize the TelnetListener,
+			// or just rely on the one configured in the MuralModule?
+			MuralModule module = new MuralModule(Path.Combine("DefaultDB", "account.db"));
+			IKernel kernel = new StandardKernel(module);
+			ILineConsumer defaultLineConsumer = kernel.Get<ILineConsumer>();
+			TelnetListener telnetListener = new TelnetListener(defaultLineConsumer);
 			
 			// TODO: What does it look like to end the program politely? 
 			// Who handles that, and how do we terminate the listener loops?

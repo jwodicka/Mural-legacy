@@ -10,45 +10,23 @@ namespace Mural
 	
 	public class HardcodedWorldList : WorldList
 	{
+		private Dictionary<string, string> _sslPassthroughIndex;
+		
 		public HardcodedWorldList()
 		{
-			SSLPassthroughIndex.Add("furrymuck", "muck.furry.com 8899");	
+			_sslPassthroughIndex = new Dictionary<string, string>();
+			_sslPassthroughIndex.Add("furrymuck", "muck.furry.com 8899");	
 		}
 		
 		public override World GetWorldByName (string worldName)
 		{
-			if (SSLPassthroughIndex.ContainsKey(worldName))
+			if (_sslPassthroughIndex.ContainsKey(worldName))
 			{
-				return new RemoteSSLWorld(worldName, SSLPassthroughIndex[worldName]);
+				return new RemoteSSLWorld(worldName, _sslPassthroughIndex[worldName]);
 			}
 			// No worlds found.
 			return null;
 		}
-		
-		protected Dictionary<string, string> SSLPassthroughIndex
-		{
-			get
-			{
-				if (_sslPassthroughIndex == null)
-				{
-					_sslPassthroughIndex = new Dictionary<string, string>();	
-				}
-				return _sslPassthroughIndex;
-			}
-		}
-		
-		private Dictionary<string, string> _sslPassthroughIndex;
-	}
-	
-	public class ServerAddress
-	{
-		public ServerAddress(string hostname, int port)
-		{
-			Hostname = hostname;
-			Port = port;
-		}
-		public string Hostname;
-		public int Port;
 	}
 }
 

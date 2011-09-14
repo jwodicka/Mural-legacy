@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using log4net;
-using Ninject;
 
 namespace Mural
 {
@@ -11,7 +10,6 @@ namespace Mural
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(TelnetListener));
 		
-		[Inject]
 		public TelnetListener(ILineConsumer defaultParser)
 		{
 			this._defaultParser = defaultParser;

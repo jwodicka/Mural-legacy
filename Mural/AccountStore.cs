@@ -7,7 +7,7 @@ namespace Mural
 		{
 		}
 		
-		public abstract Account GetAccount(string name, string password);
+		public abstract Account GetAccount(string name, string password, AccountFactory factory);
 		
 		public abstract bool CreateAccount(Account account);
 		
