@@ -11,10 +11,17 @@ namespace Mural
 	/// </summary>
 	public class Character
 	{
-		public Character (string name, string world)
+		// Used to determine ownership rights for this Character
+		private ICharacterOwnership _index;
+		
+		public string Name { get; set; }
+		public string World { get; set; }
+		
+		public Character (string name, string world, ICharacterOwnership index)
 		{
-			_name = name;
-			_world = world;
+			Name = name;
+			World = world;
+			_index = index;
 		}
 		
 		public override bool Equals (object obj)
@@ -35,31 +42,8 @@ namespace Mural
 		
 		public bool CanBeAccessedByUser(string userName)
 		{
-			// This is a quick naive implementation. We probably want to actually persist the
-			// ownership index longer.
-			// TODO: Replace this with an IoC construct.
-			string defaultCharacterFile = System.IO.Path.Combine("DefaultDB", "character.db");
-			ICharacterOwnership ownershipIndex = new SQLiteCharacterOwnership(defaultCharacterFile);
-			return ownershipIndex.DoesUserOwnCharacter(userName, Name, World);	
+			return _index.DoesUserOwnCharacter(userName, Name, World);
 		}
-		
-		public string Name
-		{
-			get
-			{
-				return _name;	
-			}
-		}
-		public string World
-		{
-			get
-			{
-				return _world;	
-			}
-		}
-		
-		private string _name;
-		private string _world;
 	}
 }
 

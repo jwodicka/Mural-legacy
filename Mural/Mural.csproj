@@ -38,6 +38,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Lib\log4net\log4net-1.2.10\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject, Version=2.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib\Ninject\Ninject-2.2.0.0-Mono-2.0\Ninject.dll</HintPath>
+    </Reference>
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
@@ -49,7 +53,6 @@
     <Compile Include="EchoParser.cs" />
     <Compile Include="SynchronousSession.cs" />
     <Compile Include="RedirectingParser.cs" />
-    <Compile Include="AccountStore.cs" />
     <Compile Include="SQLiteAccountStore.cs" />
     <Compile Include="LoginParser.cs" />
     <Compile Include="InMemoryAccountStore.cs" />
@@ -67,7 +70,6 @@
     <Compile Include="SessionBuffer.cs" />
     <Compile Include="SslSession.cs" />
     <Compile Include="WorldRouter.cs" />
-    <Compile Include="CharacterOwnershipIndex.cs" />
     <Compile Include="World.cs" />
     <Compile Include="WorldList.cs" />
     <Compile Include="RemoteSSLWorld.cs" />
@@ -78,6 +80,9 @@
     <Compile Include="RequestDisconnectEventArgs.cs" />
     <Compile Include="ResponseLineEventArgs.cs" />
     <Compile Include="BasicLineConsumer.cs" />
+    <Compile Include="MuralModule.cs" />
+    <Compile Include="CharacterFactory.cs" />
+    <Compile Include="AccountFactory.cs" />
     <Compile Include="HostElementCollection.cs" />
     <Compile Include="HostElement.cs" />
     <Compile Include="PortElementCollection.cs" />
@@ -85,12 +90,12 @@
     <Compile Include="PortConfigurationSection.cs" />
     <Compile Include="ListenerConfiguration.cs" />
     <Compile Include="ServerAddress.cs" />
-    <Compile Include="HardcodedWorldList.cs" />
     <Compile Include="SQLiteWorldList.cs" />
     <Compile Include="ISystemMessageProvider.cs" />
     <Compile Include="HardcodedSystemMessageProvider.cs" />
     <Compile Include="ICharacterOwnership.cs" />
     <Compile Include="SQLiteCharacterOwnership.cs" />
+    <Compile Include="IAccountStore.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -104,5 +109,8 @@
     <None Include="DefaultDB\world.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Bindings\" />
   </ItemGroup>
 </Project>

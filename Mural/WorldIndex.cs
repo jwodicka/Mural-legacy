@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Ninject;
 
 namespace Mural
 {
@@ -12,61 +13,37 @@ namespace Mural
 		// more appropriate as an ILineConsumer factory for line-routers that will connect
 		// to the appropriate world.
 		
-		public WorldIndex ()
+		private Dictionary<string, World> _worlds;
+		private WorldList _localWorldList;
+		
+		[Inject]
+		public WorldIndex (WorldList worldList)
 		{
-			
+			_localWorldList = worldList;
+			_worlds = new Dictionary<string, World>();
 		}
 		
 		public WorldRouter GetCharacterRouterForWorld(string characterName, string worldName)
 		{
-			if (!Worlds.ContainsKey(worldName))
+			if (!_worlds.ContainsKey(worldName))
 			{
-				World world = LocalWorldList.GetWorldByName(worldName); 
+				World world = _localWorldList.GetWorldByName(worldName); 
 				if (world != null)
 				{
-					Worlds.Add(worldName, world);
+					_worlds.Add(worldName, world);
 				}
 				else
 				{
 					throw new ArgumentException();
 				}
 			}
-			return Worlds[worldName].GetRouterForCharacter(characterName); 
+			return _worlds[worldName].GetRouterForCharacter(characterName); 
 			
 			// At the moment, this assumes all worlds are telnet passthroughs.
 			//ServerAddress worldAddress = GetServerAddressForWorld(worldName);
 			//TelnetPassthrough passthroughSession = new TelnetPassthrough(worldAddress);
 			//return passthroughSession;
 		}
-		
-		protected Dictionary<string, World> Worlds
-		{
-			get 
-			{
-				if (_worlds == null)
-				{
-					_worlds = new Dictionary<string, World>();	
-				}
-				return _worlds;
-			}
-		}
-		
-		protected WorldList LocalWorldList
-		{
-			// TODO: This wants to get pulled into the IoC refactor!
-			get
-			{
-				if (_worldList == null)
-				{
-					string defaultWorldFile = System.IO.Path.Combine("DefaultDB", "world.db");
-					_worldList = new SQLiteWorldList(defaultWorldFile);	
-				}
-				return _worldList;
-			}
-		}
-		
-		private Dictionary<string, World> _worlds;
-		private WorldList _worldList;
 	}
 }
 

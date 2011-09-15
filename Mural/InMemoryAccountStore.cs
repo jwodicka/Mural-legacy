@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using log4net;
+using Ninject;
 
 namespace Mural
 {
-	public class InMemoryAccountStore : AccountStore
+	public class InMemoryAccountStore : IAccountStore
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(InMemoryAccountStore));
-
+		
 		public InMemoryAccountStore ()
 		{
 			_accountStore = new Dictionary<string, string>();
@@ -15,15 +16,13 @@ namespace Mural
 			_accountStore.Add("mufi", "anotherPassword");
 		}
 				
-		public override Account GetAccount (string name, string password)
+		public Account GetAccount (string name, string password, AccountFactory factory)
 		{
 			_log.Debug("In GetAccount!");
 			
 			if (_accountStore.ContainsKey(name) && _accountStore[name] == password)
 			{
-				Account account = new Account();
-				account.Name = name;
-				return account;
+				return factory.GetAccount(name);
 			}
 			else
 			{
@@ -31,7 +30,7 @@ namespace Mural
 			}
 		}
 		
-		public override bool CreateAccount (Account account)
+		public bool CreateAccount (Account account)
 		{
 			_log.Debug("In CreateAccount!");
 			
@@ -46,7 +45,7 @@ namespace Mural
 			}
 		}
 		
-		public override bool UpdateAccount (Account account, string password)
+		public bool UpdateAccount (Account account, string password)
 		{
 			_log.Debug("In UpdateAccount!");
 			

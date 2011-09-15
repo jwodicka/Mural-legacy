@@ -1,15 +1,23 @@
 using System;
-using System.IO; // Referenced while we need to do path manipulation to get the DB location.
 using log4net;
+using Ninject;
 
 namespace Mural
 {
 	public class LoginParser : BasicLineConsumer
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(LoginParser));
-
-		public LoginParser ()
+		
+		private IAccountStore _accountStore;
+		private AccountFactory _accountFactory;
+		private CharacterSessionIndex _characterSessionIndex;
+		
+		[Inject]
+		public LoginParser (IAccountStore accountStore, AccountFactory accountFactory, CharacterSessionIndex characterSessionIndex)
 		{
+			_accountStore = accountStore;
+			_accountFactory = accountFactory;
+			_characterSessionIndex = characterSessionIndex;
 		}
 		
 		public override void HandleUserEvent(object sender, UserEventArgs args) 
@@ -30,32 +38,6 @@ namespace Mural
 			}
 		}
 						
-		protected AccountStore LocalAccountStore
-		{
-			get
-			{
-				if (_accountStore == null)
-				{
-					//_accountStore = new InMemoryAccountStore();
-					string defaultAccountFile = Path.Combine("DefaultDB", "account.db");
-					_accountStore = new SQLiteAccountStore(defaultAccountFile);
-				}
-				return _accountStore;
-			}
-		}
-		
-		protected CharacterSessionIndex LocalCharacterSessionIndex
-		{
-			get
-			{
-				if (_characterSessionIndex == null)
-				{
-					_characterSessionIndex = new CharacterSessionIndex();	
-				}
-				return _characterSessionIndex;
-			}
-		}
-	
 		protected void ParseLine (SynchronousSession session, string line)
 		{
 			string[] command = line.Split(' ');
@@ -75,7 +57,7 @@ namespace Mural
 					string characterAndWorld = command[2].Trim();
 					string password = command[3].Trim();
 					
-					Account account = LocalAccountStore.GetAccount(playerName, password);
+					Account account = _accountStore.GetAccount(playerName, password, _accountFactory);
 					
 					// If we successfully authenticated the player:
 					if (account != null)
@@ -99,7 +81,7 @@ namespace Mural
 							try 
 							{
 								CharacterSession characterSession =
-									LocalCharacterSessionIndex.GetSessionForCharacter(playerName, character, world);
+									_characterSessionIndex.GetSessionForCharacter(playerName, character, world);
 								// Connect this accountSession up to the characterSession
 								characterSession.AddSource(accountSession);
 							}
@@ -137,9 +119,6 @@ namespace Mural
 				break;
 			}
 		}
-		
-		private AccountStore _accountStore;
-		private CharacterSessionIndex _characterSessionIndex;
 	}
 }
 

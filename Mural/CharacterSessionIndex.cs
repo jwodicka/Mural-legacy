@@ -1,12 +1,21 @@
 using System;
 using System.Collections.Generic;
+using Ninject;
 
 namespace Mural
 {
 	public class CharacterSessionIndex
 	{
-		public CharacterSessionIndex ()
+		private CharacterFactory _characterFactory;
+		private WorldIndex _localWorldIndex;
+		private Dictionary<string, CharacterSession> _index;
+		
+		[Inject]
+		public CharacterSessionIndex (WorldIndex worldIndex, CharacterFactory characterFactory)
 		{
+			_localWorldIndex = worldIndex;
+			_characterFactory = characterFactory;
+			_index = new Dictionary<string, CharacterSession>();
 		}
 		
 		public CharacterSession GetSessionForCharacter(string userName, string characterName, string worldName)
@@ -15,11 +24,11 @@ namespace Mural
 			// (Why? Because it's possible for a character to be used by multiple players, even simultaneously.
 			//  This isn't the default case, but we want to support it in the architecture.)
 			string key = string.Format("{0}@{1}", characterName, worldName);
-			if (Index.ContainsKey(key))
+			if (_index.ContainsKey(key))
 			{
 				// This character session exists. We should return it if this user has rights to it.
 				
-				CharacterSession characterSession = Index[key];
+				CharacterSession characterSession = _index[key];
 				Character character = characterSession.CharacterIdentity;
 				
 				if (character.CanBeAccessedByUser(userName))
@@ -36,8 +45,8 @@ namespace Mural
 			}
 			else
 			{
-				// Construct the character for this session so we can test for rights.
-				Character character = new Character(characterName, worldName);
+				// Initialize the character for this session so we can test for rights.
+				Character character = _characterFactory.GetCharacter(characterName, worldName);
 				
 				if (character.CanBeAccessedByUser(userName))
 				{
@@ -45,10 +54,10 @@ namespace Mural
 					CharacterSession characterSession = new CharacterSession(character);
 					
 					// Add it to the local index
-					Index.Add(key, characterSession);
+					_index.Add(key, characterSession);
 					
 					// Connect it to the relevant world
-					WorldRouter worldRouter = LocalWorldIndex.GetCharacterRouterForWorld(characterName, worldName);
+					WorldRouter worldRouter = _localWorldIndex.GetCharacterRouterForWorld(characterName, worldName);
 					worldRouter.AddSource(characterSession);
 					
 					// Establish a SessionBuffer for it
@@ -74,33 +83,6 @@ namespace Mural
 				}
 			}
 		}
-		
-		private Dictionary<string, CharacterSession> Index
-		{
-			get
-			{
-				if (_index == null)
-				{
-					_index = new Dictionary<string, CharacterSession>();	
-				}
-				return _index;
-			}
-		}
-		
-		private WorldIndex LocalWorldIndex
-		{
-			get
-			{
-				if (_worldIndex == null)
-				{
-					_worldIndex = new WorldIndex();
-				}
-				return _worldIndex;
-			}
-		}
-		
-		private WorldIndex _worldIndex;
-		private Dictionary<string, CharacterSession> _index;
 	}
 }
 
