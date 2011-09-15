@@ -83,7 +83,6 @@
     <Compile Include="MuralModule.cs" />
     <Compile Include="CharacterFactory.cs" />
     <Compile Include="AccountFactory.cs" />
-    <Compile Include="ServerAddress.cs" />
     <Compile Include="HostElementCollection.cs" />
     <Compile Include="HostElement.cs" />
     <Compile Include="PortElementCollection.cs" />

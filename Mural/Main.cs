@@ -35,10 +35,6 @@ namespace Mural
 			//  mostly-right when they try to run Mural on their local boxen, and reading from config files so that
 			//  serious installers of Mural can set it all up in config and have it work.
 			
-			// TODO: Support binding on different addresses, configurable?
-			//string localHostName = Dns.GetHostName();
-			string localHostName = "localhost";
-			
 			// Grabs the IoC kernel to instantiate dependency-injected objects.
 			MuralModule module = new MuralModule();
 			IKernel kernel = new StandardKernel(module);
