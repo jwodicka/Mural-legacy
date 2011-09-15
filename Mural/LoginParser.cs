@@ -8,12 +8,12 @@ namespace Mural
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(LoginParser));
 		
-		private AccountStore _accountStore;
+		private IAccountStore _accountStore;
 		private AccountFactory _accountFactory;
 		private CharacterSessionIndex _characterSessionIndex;
 		
 		[Inject]
-		public LoginParser (AccountStore accountStore, AccountFactory accountFactory, CharacterSessionIndex characterSessionIndex)
+		public LoginParser (IAccountStore accountStore, AccountFactory accountFactory, CharacterSessionIndex characterSessionIndex)
 		{
 			_accountStore = accountStore;
 			_accountFactory = accountFactory;

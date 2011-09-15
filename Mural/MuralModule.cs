@@ -5,18 +5,14 @@ namespace Mural
 {
 	public class MuralModule : NinjectModule
 	{
-		private string _accountFile;
-		
-		public MuralModule(string accountFile)
-		{
-			_accountFile = accountFile;
-		}
-		
 		public override void Load()
 		{
-			Bind<AccountStore>().ToConstant(new SQLiteAccountStore(_accountFile));
-			Bind<ICharacterOwnershipIndex>().To<HardcodedCharacterOwnershipIndex>();
-			Bind<WorldList>().To<HardcodedWorldList>();
+			string defaultWorldFile = System.IO.Path.Combine("DefaultDB", "world.db");
+			Bind<WorldList>().ToConstant(new SQLiteWorldList(defaultWorldFile));
+			string defaultAccountFile = System.IO.Path.Combine("DefaultDB", "account.db");
+			Bind<IAccountStore>().ToConstant(new SQLiteAccountStore(defaultAccountFile));
+			string defaultCharacterFile = System.IO.Path.Combine("DefaultDB", "character.db");
+			Bind<ICharacterOwnership>().ToConstant(new SQLiteCharacterOwnership(defaultCharacterFile));
 			Bind<WorldIndex>().ToSelf();                    // Depends on WorldList
 			Bind<CharacterFactory>().ToSelf();              // Depends on ICharacterOwnershipIndex
 			Bind<CharacterSessionIndex>().ToSelf();         // Depends on WorldIndex, CharacterFactory

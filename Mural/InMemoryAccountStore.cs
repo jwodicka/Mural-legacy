@@ -5,7 +5,7 @@ using Ninject;
 
 namespace Mural
 {
-	public class InMemoryAccountStore : AccountStore
+	public class InMemoryAccountStore : IAccountStore
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(InMemoryAccountStore));
 		
@@ -16,7 +16,7 @@ namespace Mural
 			_accountStore.Add("mufi", "anotherPassword");
 		}
 				
-		public override Account GetAccount (string name, string password, AccountFactory factory)
+		public Account GetAccount (string name, string password, AccountFactory factory)
 		{
 			_log.Debug("In GetAccount!");
 			
@@ -30,7 +30,7 @@ namespace Mural
 			}
 		}
 		
-		public override bool CreateAccount (Account account)
+		public bool CreateAccount (Account account)
 		{
 			_log.Debug("In CreateAccount!");
 			
@@ -45,7 +45,7 @@ namespace Mural
 			}
 		}
 		
-		public override bool UpdateAccount (Account account, string password)
+		public bool UpdateAccount (Account account, string password)
 		{
 			_log.Debug("In UpdateAccount!");
 			

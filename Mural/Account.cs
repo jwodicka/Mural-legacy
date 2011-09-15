@@ -1,16 +1,15 @@
 using System;
 
-
 namespace Mural
 {
 	public class Account
 	{
-		private ICharacterOwnershipIndex _index;
+		private ICharacterOwnership _index;
 		
 		public string Name { get; set; }
 		public string Password { get; set; }
 		
-		public Account(string name, string password, ICharacterOwnershipIndex index)
+		public Account(string name, string password, ICharacterOwnership index)
 		{
 			_index = index;
 			Name = name;

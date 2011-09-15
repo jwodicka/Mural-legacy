@@ -9,8 +9,17 @@ namespace Mural
 			Hostname = hostname;
 			Port = port;
 		}
-		public string Hostname;
-		public int Port;
+		
+		public string Hostname
+		{
+			get;
+			private set;
+		}
+		
+		public int Port
+		{
+			get;
+			private set;
+		}
 	}
 }
-

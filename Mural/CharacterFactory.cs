@@ -5,10 +5,10 @@ namespace Mural
 {
 	public class CharacterFactory
 	{
-		private ICharacterOwnershipIndex _index;
+		private ICharacterOwnership _index;
 		
 		[Inject]
-		public CharacterFactory (ICharacterOwnershipIndex index)
+		public CharacterFactory (ICharacterOwnership index)
 		{
 			_index = index;
 		}
