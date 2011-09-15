@@ -10,7 +10,7 @@ namespace Mural.Test
 	{
 		[Test]
 		public void CharacterIdentityIsStoredOnCreation() {
-			Character TestCharacter = new Character("Name", "World");
+			Character TestCharacter = new Character("Name", "World", null);
 			CharacterSession TestCharacterSession = new CharacterSession(TestCharacter);
 			
 			Assert.AreEqual(TestCharacterSession.CharacterIdentity, TestCharacter);

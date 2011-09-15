@@ -70,7 +70,7 @@ namespace Mural
 			}
 		}
 		
-		public override bool CreateWorld (string name, string type, string arguments)
+		public bool CreateWorld (string name, string type, string arguments)
 		{
 			_connection.Open();
 			try 

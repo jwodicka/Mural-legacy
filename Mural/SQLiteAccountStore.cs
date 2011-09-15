@@ -5,7 +5,7 @@ using log4net;
 
 namespace Mural
 {
-	public class SQLiteAccountStore : AccountStore
+	public class SQLiteAccountStore : IAccountStore
 	{
 		private static readonly ILog _log = LogManager.GetLogger(typeof(SQLiteAccountStore));
 
@@ -37,7 +37,7 @@ namespace Mural
 			}
 		}
 		
-		public override Account GetAccount (string name, string password)
+		public Account GetAccount (string name, string password, AccountFactory factory)
 		{
 			string commandText = "select Name from Accounts where Name=@name and Password=@password";
 			
@@ -52,9 +52,7 @@ namespace Mural
 					{
 						if (reader.Read())
 						{
-							Account account = new Account();
-							account.Name = reader.GetString(0);
-							return account;
+							return factory.GetAccount(reader.GetString(0));
 						}
 						else
 						{
@@ -69,7 +67,7 @@ namespace Mural
 			}
 		}
 		
-		public override bool CreateAccount (Account account)
+		public bool CreateAccount (Account account)
 		{
 			_connection.Open();
 			try 
@@ -108,7 +106,7 @@ namespace Mural
 			}
 		}
 		
-		public override bool UpdateAccount (Account account, string password)
+		public bool UpdateAccount (Account account, string password)
 		{
 			_connection.Open();
 			try

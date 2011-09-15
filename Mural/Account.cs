@@ -4,46 +4,22 @@ namespace Mural
 {
 	public class Account
 	{
-		public Account()
-		{
-		}
+		private ICharacterOwnership _index;
 		
-		public string Name
+		public string Name { get; set; }
+		public string Password { get; set; }
+		
+		public Account(string name, string password, ICharacterOwnership index)
 		{
-			get
-			{
-				return _name;
-			}
-			set
-			{
-				_name = value;
-			}
-		}
-		public string Password 
-			// This will not be set when Account is returned; users should set it when they need to provide
-			// a password during Create or Update.
-		{
-			get
-			{
-				return _password;
-			}
-			set
-			{
-				_password = value;	
-			}
+			_index = index;
+			Name = name;
+			Password = password;
 		}
 		
 		public bool CanAccessCharacter(string characterName, string worldName)
 		{
-			// This is a quick naive implementation. We probably want to actually persist the
-			// ownership index longer.
-			string defaultCharacterFile = System.IO.Path.Combine("DefaultDB", "character.db");
-			ICharacterOwnership ownershipIndex = new SQLiteCharacterOwnership(defaultCharacterFile);
-			return ownershipIndex.DoesUserOwnCharacter(this.Name, characterName, worldName);
+			return _index.DoesUserOwnCharacter(Name, characterName, worldName);
 		}
-		
-		private string _name;
-		private string _password;
 	}
 }
 

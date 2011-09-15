@@ -1,7 +1,10 @@
 using System;
 using System.Net;
+using System.IO;
 using log4net;
 using log4net.Config;
+using Ninject;
+using Ninject.Modules;
 using System.Configuration;
 using System.Collections.Generic;
 using System.Threading;
@@ -16,13 +19,27 @@ namespace Mural
 			// Each module should be unaware of the others. This is the only module that needs to know the lay of the
 			// entire system.
 			
-			// TODO: Replace the logic here that connects components with an IoC system.
-			// Probably use Ninject for this purpose: http://ninject.org/
-			
 			// Configure log4net based off the App.config
 			XmlConfigurator.Configure();
 			
-			ILineConsumer defaultParser = new LoginParser();
+			// TODO: Figure out how Mural actually becomes aware of the IP addresses it serves,
+			// and the ports it should listen on. Perhaps the standard .NET .config XML files?
+			
+			// This whole next bit is hackish: It gets an IP address (probably!) that _should_ work for this machine.
+			// No promises are made that it does or it will. It is certain to fail miserably on machines that host
+			//  multiple domains, or have multiple IP addresses, or are behind load balancers, or are interesting in any
+			//  of a number of other ways. It has fascinating issues on WinBoxen with IPv6 installed.
+			// That is to say:
+			// THIS IS NOT PRODUCTION CODE.
+			// Replace this with a combination of defaulting as elegantly as possible to let simple users get it
+			//  mostly-right when they try to run Mural on their local boxen, and reading from config files so that
+			//  serious installers of Mural can set it all up in config and have it work.
+			
+			// Grabs the IoC kernel to instantiate dependency-injected objects.
+			MuralModule module = new MuralModule();
+			IKernel kernel = new StandardKernel(module);
+			
+			ILineConsumer defaultParser = kernel.Get<LoginParser>();
 			ISystemMessageProvider messageProvider = new HardcodedSystemMessageProvider();
 			
 			// This gets a list populated by ReadPortConfiguration with all the host/ports we know about from the config file.
